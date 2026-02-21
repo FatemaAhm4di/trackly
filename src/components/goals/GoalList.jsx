@@ -1,62 +1,54 @@
-// src/components/goals/GoalList.jsx
-import { useMemo } from 'react';
-import { Box } from '@mui/material';
-import GoalCard from './GoalCard';
+import { Box, Grid } from '@mui/material'
+import { useLanguage } from '../../hooks/useLanguage' // مسیر جدیدimport GoalCard from './GoalCard'
+import Typography from '../ui/Typography'
+import Icon from '../ui/Icon'
 
 export default function GoalList({ 
   goals, 
-  statusFilter, 
-  searchQuery, 
-  sortOption,
-  onEdit,
-  onPause,
+  onProgress, 
+  onEdit, 
+  onPause, 
   onDelete,
-  onLog
+  compact = false,
+  emptyMessage 
 }) {
-  // فیلتر و جستجو
-  const filteredGoals = useMemo(() => {
-    return goals.filter(goal => {
-      if (statusFilter !== 'all' && goal.status !== statusFilter) return false;
-      if (searchQuery && !goal.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      return true;
-    });
-  }, [goals, statusFilter, searchQuery]);
+  const { t } = useLanguage()
 
-  // مرتب‌سازی
-  const sortedGoals = useMemo(() => {
-    return [...filteredGoals].sort((a, b) => {
-      switch (sortOption) {
-        case 'progress': return b.progress - a.progress;
-        case 'newest': return b.id - a.id;
-        case 'category': return a.category.localeCompare(b.category);
-        default: return 0;
-      }
-    });
-  }, [filteredGoals, sortOption]);
+  if (!goals || goals.length === 0) {
+    return (
+      <Box 
+        sx={{ 
+          textAlign: 'center', 
+          py: 8,
+          backgroundColor: 'background.paper',
+          borderRadius: 4
+        }}
+      >
+        <Icon name="Inbox" size={64} color="text.disabled" sx={{ mb: 2 }} />
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          {emptyMessage || t('goals.noGoals')}
+        </Typography>
+        <Typography variant="body2" color="text.disabled">
+          {t('goals.createGoal')}
+        </Typography>
+      </Box>
+    )
+  }
 
   return (
-    <Box sx={{ 
-      display: 'grid',
-      gridTemplateColumns: { xs: '1fr', sm: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(2, 1fr)' },
-      gap: 3,
-      justifyContent: 'center'
-    }}>
-      {sortedGoals.length === 0 ? (
-        <Box sx={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-          No goals match your filters.
-        </Box>
-      ) : (
-        sortedGoals.map((goal) => (
-          <GoalCard 
-            key={goal.id}
-            goal={goal} 
+    <Grid container spacing={3}>
+      {goals.map((goal) => (
+        <Grid item xs={12} sm={6} lg={4} key={goal.id}>
+          <GoalCard
+            goal={goal}
+            onProgress={onProgress}
             onEdit={onEdit}
             onPause={onPause}
             onDelete={onDelete}
-            onLog={onLog}
+            compact={compact}
           />
-        ))
-      )}
-    </Box>
-  );
+        </Grid>
+      ))}
+    </Grid>
+  )
 }

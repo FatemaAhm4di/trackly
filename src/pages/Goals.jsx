@@ -1,102 +1,138 @@
-// src/pages/Goals.jsx
-import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import GoalFilters from '../components/goals/GoalFilters';
-import GoalList from '../components/goals/GoalList';
-
-// داده‌های تستی — بعداً از localStorage می‌خونیم
-const mockGoals = [
-  {
-    id: 1,
-    title: "Read 20 pages daily",
-    category: "Study",
-    progress: 65,
-    target: 30,
-    completed: 19,
-    type: "daily",
-    status: "active"
-  },
-  {
-    id: 2,
-    title: "Workout 4 times/week",
-    category: "Health",
-    progress: 80,
-    target: 5,
-    completed: 4,
-    type: "count",
-    status: "active"
-  },
-  {
-    id: 3,
-    title: "Drink 2L water daily",
-    category: "Health",
-    progress: 100,
-    target: 30,
-    completed: 30,
-    type: "daily",
-    status: "completed"
-  },
-  {
-    id: 4,
-    title: "Meditate 10 min",
-    category: "Personal",
-    progress: 30,
-    target: 30,
-    completed: 9,
-    type: "daily",
-    status: "paused"
-  }
-];
+import { useState } from 'react'
+import { Box, useMediaQuery, useTheme } from '@mui/material'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLanguage } from '../hooks/useLanguage'
+import { useGoalService } from '../services/goalService'
+import GoalFilters from '../components/goals/GoalFilters'
+import GoalList from '../components/goals/GoalList'
+import Dialog from '../components/ui/Dialog'
+import Typography from '../components/ui/Typography'
+import Button from '../components/ui/Button'
 
 export default function Goals() {
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('progress');
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const { t } = useLanguage()
+  
+ const { 
+  goals, 
+  addProgress, 
+  deleteGoal, 
+  togglePause,       // ← فقط اگر در کد استفاده می‌شود نگه دار
+  searchGoals,
+  sortGoals 
+} = useGoalService()
+  
+  // مقدار اولیه فیلتر را از URL می‌خوانیم (فقط یکبار موقع لود)
+  const initialFilter = searchParams.get('filter') || 'all';
+  const [filter, setFilter] = useState(initialFilter)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
 
-  // توابع مدیریت عملیات (فعلاً console.log — بعداً واقعی می‌شن)
-  const handleEdit = (goal) => {
-    console.log('Edit:', goal);
-  };
+  // --- اصلاحیه اصلی: فیلتر و سورت مستقیم در بدنه کامپوننت ---
+  let filteredGoals = [...goals];
 
-  const handlePause = (goal) => {
-    console.log(goal.status === 'active' ? 'Pause:' : 'Resume:', goal);
-  };
+  if (filter !== 'all') {
+    filteredGoals = filteredGoals.filter(goal => goal.status === filter)
+  }
 
-  const handleDelete = (goal) => {
-    console.log('Delete:', goal);
-  };
+  if (searchQuery) {
+    filteredGoals = searchGoals(searchQuery)
+  }
+
+  filteredGoals = sortGoals(filteredGoals, sortBy)
+  // -------------------------------------------------------
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter)
+  }
+
+  const handleSearch = (query) => {
+    setSearchQuery(query)
+  }
+
+  const handleSort = (sort) => {
+    setSortBy(sort)
+  }
+
+  const handleProgress = (goalId) => {
+    addProgress(goalId)
+  }
+
+  const handleEdit = (goalId) => {
+    navigate(`/goals/${goalId}`)
+  }
+
+  const handlePause = (goalId) => {
+    togglePause(goalId)
+  }
+
+  const handleDeleteClick = (goalId) => {
+    setDeleteDialog({ open: true, goalId })
+  }
+
+  const handleDeleteConfirm = () => {
+    if (deleteDialog.goalId) {
+      deleteGoal(deleteDialog.goalId)
+      setDeleteDialog({ open: false, goalId: null })
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ open: false, goalId: null })
+  }
 
   return (
-    <Box sx={{ textAlign: 'center', py: 2 }}>
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          fontWeight: 600, 
-          color: '#054532', 
-          mb: 4 
-        }}
-      >
-        All Goals
-      </Typography>
+    <Box>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight="700" gutterBottom>
+          {t('goals.title')}
+        </Typography>
+      </Box>
 
       <GoalFilters
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        sortOption={sortOption}
-        onSortChange={setSortOption}
+        onFilterChange={handleFilterChange}
+        onSearch={handleSearch}
+        onSort={handleSort}
+        onAddClick={() => navigate('/goals/new')}
       />
 
       <GoalList
-        goals={mockGoals}
-        statusFilter={statusFilter}
-        searchQuery={searchQuery}
-        sortOption={sortOption}
+        goals={filteredGoals}
+        onProgress={handleProgress}
         onEdit={handleEdit}
         onPause={handlePause}
-        onDelete={handleDelete}
+        onDelete={handleDeleteClick}
+        compact={isMobile}
+        emptyMessage={
+          searchQuery 
+            ? t('goals.noGoals')
+            : filter !== 'all' 
+              ? `No ${filter} goals`
+              : t('goals.noGoals')
+        }
       />
+
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        title="Delete Goal"
+        actions={
+          <>
+            <Button onClick={handleDeleteCancel} variant="outlined" color="inherit">
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleDeleteConfirm} variant="contained" color="error">
+              {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        Are you sure you want to delete this goal? This action cannot be undone.
+      </Dialog>
     </Box>
-  );
+  )
 }

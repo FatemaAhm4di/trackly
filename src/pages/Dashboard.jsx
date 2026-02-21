@@ -1,246 +1,327 @@
-// src/pages/Dashboard.jsx
-import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  LinearProgress,
-  Chip,
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  TrendingUp as TrendingUpIcon,
-  Star as StarIcon,
-  CalendarToday as CalendarIcon,
-} from '@mui/icons-material';
-
-// داده‌های تستی
-const mockActiveGoals = [
-  {
-    id: 1,
-    title: "Read 20 pages daily",
-    category: "Study",
-    progress: 65,
-    target: 30,
-    completed: 19,
-    type: "daily",
-    status: "active"
-  },
-  {
-    id: 2,
-    title: "Workout 4 times/week",
-    category: "Health",
-    progress: 80,
-    target: 5,
-    completed: 4,
-    type: "count",
-    status: "active"
-  }
-];
-
-const mockCompletedGoals = [
-  { id: 3, title: "Drink 2L water daily", category: "Health" },
-  { id: 4, title: "Meditate 10 min", category: "Personal" }
-];
+import { useState, } from 'react'
+import { Box, Grid, Card, CardContent, IconButton } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../hooks/useLanguage' 
+import { useGoalService } from '../services/goalService'
+import Icon from '../components/ui/Icon'
+import Typography from '../components/ui/Typography'
+import ProgressBar from '../components/ui/ProgressBar'
+import Button from '../components/ui/Button'
+import Dialog from '../components/ui/Dialog'
 
 export default function Dashboard() {
-  const [stats] = useState({
-    overallProgress: 72,
-    completedCount: 12,
-    streak: 8,
-    xp: 1420
-  });
+  const navigate = useNavigate()
+  const { t } = useLanguage()
+  
+  const { 
+    userStats,
+    addProgress,
+    deleteGoal,
+    getOverallProgress,
+    getGoalsByStatus,
+    calculateStreak 
+  } = useGoalService()
+  
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
+
+  const activeGoals = getGoalsByStatus('active')
+  const completedGoals = getGoalsByStatus('completed')
+  const overallProgress = getOverallProgress()
+
+  // --- اصلاحیه اصلی: محاسبه مستقیم بدون useState/useEffect ---
+  let streak = 0;
+  if (activeGoals.length > 0) {
+    const totalStreak = activeGoals.reduce((acc, goal) => acc + calculateStreak(goal.id), 0);
+    streak = Math.floor(totalStreak / activeGoals.length) || 0;
+  }
+  // ---------------------------------------------------------
+
+  const handleProgress = (goalId) => {
+    addProgress(goalId)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (deleteDialog.goalId) {
+      deleteGoal(deleteDialog.goalId)
+      setDeleteDialog({ open: false, goalId: null })
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ open: false, goalId: null })
+  }
+
+  // ... بقیه کد (statCards و return) بدون تغییر باقی می‌ماند ...
+
+  const statCards = [
+    {
+      title: t('dashboard.overallProgress'),
+      value: `${Math.round(overallProgress)}%`,
+      icon: 'TrendingUp',
+      color: 'primary',
+      bgColor: 'rgba(54, 138, 199, 0.1)'
+    },
+    {
+      title: t('dashboard.completedGoals'),
+      value: userStats.completedCount,
+      icon: 'CheckCircle',
+      color: 'success',
+      bgColor: 'rgba(76, 175, 80, 0.1)'
+    },
+    {
+      title: t('dashboard.streak'),
+      value: `${streak} ${t('common.days')}`,
+      icon: 'LocalFireDepartment',
+      color: 'warning',
+      bgColor: 'rgba(255, 152, 0, 0.1)'
+    },
+    {
+      title: t('dashboard.xpPoints'),
+      value: userStats.xpTotal,
+      icon: 'EmojiEvents',
+      color: 'secondary',
+      bgColor: 'rgba(14, 84, 136, 0.1)'
+    }
+  ]
 
   return (
-    <Box sx={{ textAlign: 'center', py: 2 }}>
-      {/* عنوان اصلی */}
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          fontWeight: 600, 
-          color: '#054532', 
-          mb: 4 
-        }}
-      >
-        Your Progress
-      </Typography>
-
-      {/* Top Summary Cards — با Box به جای Grid */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 4 }}>
-        <Card sx={{ bgcolor: '#f8faf9', py: 2, px: 1.5 }}>
-          <Typography variant="body2" color="text.secondary">Overall</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>{stats.overallProgress}%</Typography>
-        </Card>
-        <Card sx={{ bgcolor: '#f8faf9', py: 2, px: .5 }}>
-          <Typography variant="body2" color="text.secondary">Completed</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>{stats.completedCount}</Typography>
-        </Card>
-        <Card sx={{ bgcolor: '#f8faf9', py: 2, px: 1.5 }}>
-          <Typography variant="body2" color="text.secondary">Streak</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-            <CalendarIcon fontSize="small" sx={{ color: '#589a84' }} /> {stats.streak}
-          </Typography>
-        </Card>
-        <Card sx={{ bgcolor: '#f8faf9', py: 2, px: 1.5 }}>
-          <Typography variant="body2" color="text.secondary">XP</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-            <StarIcon fontSize="small" sx={{ color: '#FFC107' }} /> {stats.xp}
-          </Typography>
-        </Card>
-      </Box>
-
-      {/* Quick Actions */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 5, flexWrap: 'wrap' }}>
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />}
-          sx={{ 
-            bgcolor: '#054532', 
-            '&:hover': { bgcolor: '#043729' },
-            borderRadius: '10px',
-            px: 2.5
-          }}
-        >
-          + New Goal
-        </Button>
-        <Button 
-          variant="outlined" 
-          sx={{ 
-            borderColor: '#054532', 
-            color: '#054532',
-            borderRadius: '10px',
-            px: 2.5
-          }}
-        >
-          View All Goals
-        </Button>
-      </Box>
-
-      {/* Active Goals Section */}
-      <Box sx={{ mb: 5 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
-          Active Goals
+    <Box>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight="700" gutterBottom>
+          {t('dashboard.welcome')}!
         </Typography>
+        <Typography variant="body1" color="text.secondary">
+          {t('dashboard.title')}
+        </Typography>
+      </Box>
 
-        {mockActiveGoals.length === 0 ? (
-          <Card sx={{ p: 5, maxWidth: 500, margin: '0 auto', bgcolor: '#f8faf9' }}>
-            <TrendingUpIcon sx={{ fontSize: 56, color: '#589a84', opacity: 0.6, mb: 2 }} />
-            <Typography variant="h6" sx={{ mb: 1 }}>No active goals yet</Typography>
-            <Typography color="text.secondary">
-              Start by creating your first goal!
-            </Typography>
-          </Card>
-        ) : (
-          <Box sx={{ 
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(2, 1fr)' },
-            gap: 3,
-            justifyContent: 'center'
-          }}>
-            {mockActiveGoals.map((goal) => (
-              <Card key={goal.id} sx={{ 
-                borderRadius: '16px',
-                boxShadow: '0 4px 12px rgba(5, 69, 50, 0.05)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {statCards.map((stat, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <Card 
+              sx={{ 
+                height: '100%',
                 '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 16px rgba(5, 69, 50, 0.1)'
-                }
-              }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'left', flex: 1 }}>
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+                },
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box 
+                    sx={{ 
+                      p: 2, 
+                      borderRadius: 3,
+                      backgroundColor: stat.bgColor
+                    }}
+                  >
+                    <Icon name={stat.icon} size={32} color={stat.color} />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {stat.title}
+                    </Typography>
+                    <Typography variant="h5" fontWeight="700" color={stat.color}>
+                      {stat.value}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" fontWeight="600">
+            {t('dashboard.quickActions')}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon="Add"
+            onClick={() => navigate('/goals/new')}
+            sx={{ px: 3 }}
+          >
+            {t('dashboard.newGoal')}
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon="Flag"
+            onClick={() => navigate('/goals')}
+            sx={{ px: 3 }}
+          >
+            {t('dashboard.viewAllGoals')}
+          </Button>
+        </Box>
+      </Box>
+
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" fontWeight="600">
+            {t('dashboard.activeGoals')}
+          </Typography>
+          <IconButton onClick={() => navigate('/goals')}>
+            <Icon name="ArrowForward" size={20} />
+          </IconButton>
+        </Box>
+        
+        {activeGoals.length > 0 ? (
+          <Grid container spacing={3}>
+            {activeGoals.slice(0, 3).map((goal) => (
+              <Grid item xs={12} md={4} key={goal.id}>
+                <Card 
+                  sx={{
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+                    },
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => navigate(`/goals/${goal.id}`)}
+                >
+                  <CardContent>
+                    <Typography variant="h6" fontWeight="600" gutterBottom>
                       {goal.title}
                     </Typography>
-                    <Chip 
-                      label={goal.category} 
-                      size="small" 
-                      sx={{ 
-                        bgcolor: '#589a8415', 
-                        color: '#589a84', 
-                        fontWeight: 500,
-                        height: '24px'
-                      }} 
-                    />
-                  </Box>
-                  
-                  <Box sx={{ my: 2 }}>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={goal.progress} 
-                      sx={{ 
-                        height: 8, 
-                        borderRadius: 4,
-                        bgcolor: '#e0f2e9',
-                        '& .MuiLinearProgress-bar': { bgcolor: '#054532' }
-                      }} 
-                    />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {goal.type === 'daily' ? `${goal.completed}/${goal.target} days` : `${goal.completed}/${goal.target} sessions`}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">{goal.progress}%</Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <ProgressBar 
+                        value={(goal.progress / goal.target) * 100} 
+                        color="primary"
+                      />
                     </Box>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', mt: 2 }}>
-                    <Button 
-                      size="small" 
-                      variant="contained" 
-                      sx={{ 
-                        bgcolor: '#054532', 
-                        flex: 1,
-                        borderRadius: '8px'
-                      }}
-                    >
-                      ✅ Log
-                    </Button>
-                    <Button 
-                      size="small" 
-                      variant="outlined" 
-                      sx={{ 
-                        borderColor: '#054532', 
-                        color: '#054532',
-                        flex: 1,
-                        borderRadius: '8px'
-                      }}
-                    >
-                      ✏️ Edit
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {goal.progress} / {goal.target}
+                      </Typography>
+                      <IconButton 
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleProgress(goal.id)
+                        }}
+                        sx={{ 
+                          backgroundColor: 'success.light',
+                          color: 'white',
+                          '&:hover': { backgroundColor: 'success.dark' }
+                        }}
+                      >
+                        <Icon name="CheckCircle" size={18} />
+                      </IconButton>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </Box>
+          </Grid>
+        ) : (
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 4 }}>
+              <Icon name="Inbox" size={64} color="text.disabled" sx={{ mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {t('dashboard.noActiveGoals')}
+              </Typography>
+              <Typography variant="body2" color="text.disabled" sx={{ mb: 2 }}>
+                {t('dashboard.createFirstGoal')}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon="Add"
+                onClick={() => navigate('/goals/new')}
+              >
+                {t('dashboard.newGoal')}
+              </Button>
+            </CardContent>
+          </Card>
         )}
       </Box>
 
-      {/* Completed Goals Preview */}
-      {mockCompletedGoals.length > 0 && (
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-            Recently Completed
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" fontWeight="600">
+            {t('dashboard.completedGoalsPreview')}
           </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-            {mockCompletedGoals.map((goal) => (
-              <Chip 
-                key={goal.id}
-                label={`${goal.title} • ${goal.category}`} 
-                size="medium"
-                sx={{ 
-                  bgcolor: '#e8f5e9', 
-                  color: '#054532',
-                  fontWeight: 500,
-                  borderRadius: '8px',
-                  px: 1.5
-                }} 
-              />
-            ))}
-          </Box>
+          <IconButton onClick={() => navigate('/goals?filter=completed')}>
+            <Icon name="ArrowForward" size={20} />
+          </IconButton>
         </Box>
-      )}
+        
+        {completedGoals.length > 0 ? (
+          <Grid container spacing={3}>
+            {completedGoals.slice(0, 3).map((goal) => (
+              <Grid item xs={12} md={4} key={goal.id}>
+                <Card 
+                  sx={{
+                    borderLeft: '4px solid',
+                    borderLeftColor: 'success.main',
+                    opacity: 0.8,
+                    '&:hover': {
+                      opacity: 1,
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+                    },
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => navigate(`/goals/${goal.id}`)}
+                >
+                  <CardContent>
+                    <Typography 
+                      variant="h6" 
+                      fontWeight="600" 
+                      gutterBottom
+                      sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+                    >
+                      {goal.title}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon name="CheckCircle" size={20} color="success" />
+                      <Typography variant="body2" color="success.main">
+                        {t('dashboard.complete')}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 4 }}>
+              <Icon name="Celebration" size={64} color="text.disabled" sx={{ mb: 2 }} />
+              <Typography variant="h6" color="text.secondary">
+                {t('dashboard.noCompletedGoals')}
+              </Typography>
+            </CardContent>
+          </Card>
+        )}
+      </Box>
+
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        title="Delete Goal"
+        actions={
+          <>
+            <Button onClick={handleDeleteCancel} variant="outlined" color="inherit">
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleDeleteConfirm} variant="contained" color="error">
+              {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        Are you sure you want to delete this goal? This action cannot be undone.
+      </Dialog>
     </Box>
-  );
+  )
 }
