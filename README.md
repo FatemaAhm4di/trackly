@@ -317,7 +317,7 @@ Progress history log
 
 RTL/LTR (20 pts)
 
-2+ languages
+3+ languages
 
 Direction changes with language
 
