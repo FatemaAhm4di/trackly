@@ -1,6 +1,6 @@
 import { Box, Tabs, Tab, InputAdornment } from '@mui/material'
 import { useState } from 'react'
-import { useLanguage } from '../../hooks/useLanguage' // مسیر جدیدimport Icon from '../ui/Icon'
+import { useLanguage } from '../../hooks/useLanguage' 
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 

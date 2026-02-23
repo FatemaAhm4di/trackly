@@ -28,13 +28,11 @@ export default function Dashboard() {
   const completedGoals = getGoalsByStatus('completed')
   const overallProgress = getOverallProgress()
 
-  // --- اصلاحیه اصلی: محاسبه مستقیم بدون useState/useEffect ---
   let streak = 0;
   if (activeGoals.length > 0) {
     const totalStreak = activeGoals.reduce((acc, goal) => acc + calculateStreak(goal.id), 0);
     streak = Math.floor(totalStreak / activeGoals.length) || 0;
   }
-  // ---------------------------------------------------------
 
   const handleProgress = (goalId) => {
     addProgress(goalId)
@@ -51,7 +49,6 @@ export default function Dashboard() {
     setDeleteDialog({ open: false, goalId: null })
   }
 
-  // ... بقیه کد (statCards و return) بدون تغییر باقی می‌ماند ...
 
   const statCards = [
     {

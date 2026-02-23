@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { ThemeContext } from './ThemeContext'; // ایمپورت از فایل js بالا
+import { ThemeContext } from './ThemeContext';
 import { createAppTheme } from '../theme/theme';
 
 export function ThemeContextProvider({ children }) {

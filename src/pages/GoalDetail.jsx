@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Box, Grid, Card, CardContent, Chip, IconButton } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useLanguage } from '../hooks/useLanguage' // ✅ اصلاح مسیر: فقط یک سطح بالا
+import { useLanguage } from '../hooks/useLanguage'
 import { useGoalService } from '../services/goalService'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
 import ProgressBar from '../components/ui/ProgressBar'
 import Dialog from '../components/ui/Dialog'
-import Input from '../components/ui/Input' // ✅ اضافه کردن ایمپورت فراموش شده
+import Input from '../components/ui/Input' 
 
 export default function GoalDetail() {
   const navigate = useNavigate()

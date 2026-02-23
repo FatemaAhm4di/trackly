@@ -1,6 +1,6 @@
 import { Card, CardContent, Box, IconButton, Chip } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { useLanguage } from '../../hooks/useLanguage' // مسیر جدیدimport Icon from '../ui/Icon'
+import { useLanguage } from '../../hooks/useLanguage' 
 import Typography from '../ui/Typography'
 import ProgressBar from '../ui/ProgressBar'
 

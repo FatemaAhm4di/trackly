@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, Grid } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useLanguage } from '../hooks/useLanguage' // اصلاح مسیر: فقط یک سطح بالا
+import { useLanguage } from '../hooks/useLanguage' 
 import { useGoalService } from '../services/goalService'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'

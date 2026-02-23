@@ -1,8 +1,8 @@
-import { Box, Button } from '@mui/material' // دکمه را اینجا اضافه کردیم
+import { Box, Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from "../hooks/useLanguage"
 import Icon from '../components/ui/Icon'
-import Typography from '../components/ui/Typography' // تایپوگرافی را اینجا اضافه کردیم
+import Typography from '../components/ui/Typography' 
 
 export default function NotFound() {
   const navigate = useNavigate()

@@ -20,19 +20,17 @@ export default function Goals() {
   goals, 
   addProgress, 
   deleteGoal, 
-  togglePause,       // ← فقط اگر در کد استفاده می‌شود نگه دار
+  togglePause,     
   searchGoals,
   sortGoals 
 } = useGoalService()
   
-  // مقدار اولیه فیلتر را از URL می‌خوانیم (فقط یکبار موقع لود)
   const initialFilter = searchParams.get('filter') || 'all';
   const [filter, setFilter] = useState(initialFilter)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
 
-  // --- اصلاحیه اصلی: فیلتر و سورت مستقیم در بدنه کامپوننت ---
   let filteredGoals = [...goals];
 
   if (filter !== 'all') {
@@ -44,7 +42,6 @@ export default function Goals() {
   }
 
   filteredGoals = sortGoals(filteredGoals, sortBy)
-  // -------------------------------------------------------
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter)

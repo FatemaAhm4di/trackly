@@ -6,7 +6,7 @@ import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
 
 export default function Settings() {
-  const { t, language, changeLanguage, direction } = useLanguage() // toggleDirection حذف شد
+  const { t, language, changeLanguage, direction } = useLanguage()
   const { themeMode, toggleTheme } = useThemeContext()
 
   return (

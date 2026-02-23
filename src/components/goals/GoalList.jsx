@@ -1,5 +1,5 @@
 import { Box, Grid } from '@mui/material'
-import { useLanguage } from '../../hooks/useLanguage' // مسیر جدیدimport GoalCard from './GoalCard'
+import { useLanguage } from '../../hooks/useLanguage' 
 import Typography from '../ui/Typography'
 import Icon from '../ui/Icon'
 
