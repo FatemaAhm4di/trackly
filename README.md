@@ -348,7 +348,5 @@ Code reusability
 
 No console errors
 
-📸 Screenshots:
-
-Desktop Dashboard
+📸 Screenshots
 
