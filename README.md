@@ -1,4 +1,4 @@
-# Trackly - Goal Tracker Dashboard
+# Trackly - Tracker Dashboard
 
 A modern, responsive goal tracking application built with React, Vite, and Material UI.
 
