@@ -146,7 +146,11 @@
     "fitness": "تناسب اندام",
     "finance": "مالی",
     "creative": "خلاقانه",
-    "social": "اجتماعی"
+    "social": "اجتماعی",
+    "career": "شغلی",
+"relationships": "روابط",
+"learning": "یادگیری",
+"spiritual": "معنوی"
   },
   "validation": {
     "required": "این فیلد الزامی است",

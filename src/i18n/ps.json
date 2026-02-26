@@ -146,7 +146,11 @@
     "fitness": "تناسب",
     "finance": "مالی",
     "creative": "خلاقانه",
-    "social": "ټولنیز"
+    "social": "ټولنیز",
+    "career": "دنده",
+"relationships": "اړیکې",
+"learning": "زده کړه",
+"spiritual": "روحاني"
   },
   "validation": {
     "required": "دا ساحه اړینه ده",

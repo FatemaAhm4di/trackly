@@ -150,7 +150,12 @@
     "fitness": "Fitness",
     "finance": "Finance",
     "creative": "Creative",
-    "social": "Social"
+    "social": "Social",
+    "career": "Career",
+"relationships": "Relationships",
+"learning" : "Learning",
+"spiritual" : "Spiritual"
+
   },
   "validation": {
     "required": "This field is required",
