@@ -104,22 +104,23 @@ export default function Settings() {
                   <Icon name="Info" size={24} color="success" />
                 </Box>
                 <Typography variant="h6" fontWeight="600">
-                  About Trackly
+                  
+                                    {t('settings.aboutTitle')}
                 </Typography>
               </Box>
 
               <Typography variant="body1" color="text.secondary" paragraph>
-                Trackly is a goal tracking application built with React, Vite, and Material UI.
+                                {t('settings.description')}
               </Typography>
 
               <Typography variant="body2" color="text.secondary">
-                <strong>Version:</strong> 1.0.0
+                <strong>{t('settings.version')}</strong> 1.0.0
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                <strong>Languages:</strong> English, Persian, Pashto
+                <strong>{t('settings.languages')}</strong> English, Persian, Pashto
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                <strong>Features:</strong> Goal Management, Progress Tracking, Streak System, XP/Gamification
+                <strong>{t('settings.features')}</strong> {t('settings.featureList')}
               </Typography>
             </CardContent>
           </Card>

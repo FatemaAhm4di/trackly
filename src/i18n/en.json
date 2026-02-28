@@ -42,11 +42,7 @@
     "noGoals": "No goals found",
     "createGoal": "Create your first goal",
     "target": "Target",
-    "progress": "Progress",
     "status": "Status",
-    "active": "Active",
-    "paused": "Paused",
-    "completed": "Completed",
     "markProgress": "Mark Progress",
     "edit": "Edit",
     "pause": "Pause",
@@ -100,9 +96,11 @@
   },
   "categories": {
     "title": "Categories",
+    "subtitle": "Overview of your goals across different areas",
     "activeGoals": "Active Goals",
     "completedGoals": "Completed Goals",
     "totalGoals": "Total Goals",
+    "progress": "Progress",
     "noCategories": "No categories found"
   },
   "settings": {
@@ -117,7 +115,14 @@
     "ltr": "Left to Right",
     "rtl": "Right to Left",
     "save": "Save Settings",
-    "success": "Settings saved successfully"
+    "success": "Settings saved successfully",
+    "aboutTitle": "About Trackly",
+    "description": "Trackly is a goal tracking application built with React, Vite, and Material UI.",
+    "version": "Version",
+    "languages": "Languages",
+    "features": "Features",
+    "featureList": "Goal Management, Progress Tracking, Streak System, XP/Gamification",
+    "currentMode": "Current: {{mode}} Mode"
   },
   "common": {
     "loading": "Loading...",
@@ -143,19 +148,18 @@
     "hour": "hour"
   },
   "categories_list": {
+    "education": "Education",
+    "creative": "Creativity",
+    "mental": "Mental Health",
+    "career": "Career",
     "health": "Health",
-    "study": "Study",
-    "work": "Work",
-    "personal": "Personal",
     "fitness": "Fitness",
     "finance": "Finance",
-    "creative": "Creative",
-    "social": "Social",
-    "career": "Career",
-"relationships": "Relationships",
-"learning" : "Learning",
-"spiritual" : "Spiritual"
-
+    "productivity": "Productivity",
+    "social": "Social Life",
+    "family": "Family",
+    "travel": "Travel",
+    "spiritual": "Spiritual Growth"
   },
   "validation": {
     "required": "This field is required",

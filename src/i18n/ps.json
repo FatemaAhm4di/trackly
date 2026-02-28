@@ -96,16 +96,18 @@
   },
   "categories": {
     "title": "کټګورۍ",
+    "subtitle": "په مختلفو برخو کې ستاسو د موخو لنډیز",
     "activeGoals": "فعالې موخې",
     "completedGoals": "بشپړ شوې موخې",
     "totalGoals": "ټولې موخې",
+    "progress": "مخ پر تګ",
     "noCategories": "هیڅ کټګوري ونه موندل شوه"
   },
   "settings": {
     "title": "ترتیبونه",
     "language": "ژبه",
     "selectLanguage": "ژبه وټاکئ",
-    "theme": "تم",
+    "theme": "پوسته",
     "light": "روښانه",
     "dark": "تیاره",
     "system": "سیسټم",
@@ -113,7 +115,14 @@
     "ltr": "کیڼ څخه ښی",
     "rtl": "ښی خه کی",
     "save": "ترتیبونه ذخیره کړئ",
-    "success": "ترتیبونه په بریالیتوب سره ذخیره شول"
+    "success": "ترتیبونه په بریالیتوب سره ذخیره شول",
+    "aboutTitle": "د ټراکلي په اړه",
+    "description": "ټراکلي د هدف تعقیب غوښتنلیک دی چې د React، Vite، او Material UI سره جوړ شوی.",
+    "version": "نسخه",
+    "languages": "ژبې",
+    "features": "ځانګړتیاوې",
+    "featureList": "د موخو مدیریت، د پرمختګ تعقیب، د ریکارډ سیسټم، XP/لوبې کول",
+    "currentMode": "اوسنی: د {{mode}} حالت"
   },
   "common": {
     "loading": "په بارولو کې...",
@@ -140,17 +149,17 @@
   },
   "categories_list": {
     "health": "روغتیا",
-    "study": "زده کړه",
-    "work": "کار",
-    "personal": "شخصي",
-    "fitness": "تناسب",
-    "finance": "مالی",
-    "creative": "خلاقانه",
+    "fitness": "فزیکي فټنس",
+    "mental": "ذهني روغتیا",
+    "career": "مسلک او دنده",
+    "finance": "مالي چارې",
+    "education": "زده کړه",
+    "productivity": "موثریت",
     "social": "ټولنیز",
-    "career": "دنده",
-"relationships": "اړیکې",
-"learning": "زده کړه",
-"spiritual": "روحاني"
+    "family": "کورنۍ",
+    "creative": "خلاقیت",
+    "travel": "سفر",
+    "spiritual": "روحاني"
   },
   "validation": {
     "required": "دا ساحه اړینه ده",

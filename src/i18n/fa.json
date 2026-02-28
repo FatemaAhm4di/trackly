@@ -96,9 +96,11 @@
   },
   "categories": {
     "title": "دسته‌بندی‌ها",
+    "subtitle": "مروری بر اهداف شما در زمینه‌های مختلف",
     "activeGoals": "اهداف فعال",
     "completedGoals": "اهداف تکمیل شده",
     "totalGoals": "کل اهداف",
+    "progress": "پیشرفت",
     "noCategories": "هیچ دسته‌بندی یافت نشد"
   },
   "settings": {
@@ -113,7 +115,14 @@
     "ltr": "چپ به راست",
     "rtl": "راست به چپ",
     "save": "ذخیره تنظیمات",
-    "success": "تنظیمات با موفقیت ذخیره شد"
+    "success": "تنظیمات با موفقیت ذخیره شد",
+    "aboutTitle": "درباره ترکلی",
+    "description": "ترکلی یک اپلیکیشن ردیابی هدف است که با React، Vite و Material UI ساخته شده است.",
+    "version": "نسخه",
+    "languages": "زبان‌ها",
+    "features": "ویژگی‌ها",
+    "featureList": "مدیریت اهداف، پیگیری پیشرفت، سیستم رکورد، امتیازدهی",
+    "currentMode": "فعال: حالت {{mode}}"
   },
   "common": {
     "loading": "در حال بارگذاری...",
@@ -139,18 +148,18 @@
     "hour": "ساعت"
   },
   "categories_list": {
-    "health": "سلامتی",
-    "study": "تحصیل",
-    "work": "کار",
-    "personal": "شخصی",
+    "health": "سلامت",
     "fitness": "تناسب اندام",
+    "mental": "سلامت روان",
+    "career": "حرفه و شغل",
     "finance": "مالی",
-    "creative": "خلاقانه",
+    "education": "آموزش",
+    "productivity": "بهره‌وری",
     "social": "اجتماعی",
-    "career": "شغلی",
-"relationships": "روابط",
-"learning": "یادگیری",
-"spiritual": "معنوی"
+    "family": "خانواده",
+    "creative": "خلاقیت",
+    "travel": "سفر",
+    "spiritual": "معنوی"
   },
   "validation": {
     "required": "این فیلد الزامی است",
