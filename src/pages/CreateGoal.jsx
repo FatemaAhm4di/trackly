@@ -34,7 +34,13 @@ export default function CreateGoal() {
 
   const [errors, setErrors] = useState({})
 
-  const CATEGORIES = ['health', 'study', 'work', 'personal', 'fitness', 'finance', 'creative', 'social']
+  // ✅ لیست آپدیت شده با ۱۲ دسته‌بندی جدید
+  const CATEGORIES = [
+    'education', 'creative', 'mental', 'career', 
+    'health', 'fitness', 'finance', 'productivity', 
+    'social', 'family', 'travel', 'spiritual'
+  ]
+  
   const GOAL_TYPES = ['daily', 'count', 'time']
 
   const handleChange = (field, value) => {
@@ -140,12 +146,14 @@ export default function CreateGoal() {
 
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
+                {/* ✅ اصلاح فیلد Category برای تراز شدن متن */}
                 <Input
                   label={t('createGoal.category')}
                   value={formData.category}
                   onChange={(e) => handleChange('category', e.target.value)}
                   select
                   SelectProps={{ native: true }}
+                  InputLabelProps={{ shrink: true }} // این خط باعث می‌شود لیبل مثل Goal Type رفتار کند
                   required
                   error={Boolean(errors.category)}
                   helperText={errors.category}
@@ -155,7 +163,9 @@ export default function CreateGoal() {
                   <option value="">{t('createGoal.selectCategory')}</option>
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
-                      {t(`categories_list.${cat}`)}
+                      {t(`categories_list.${cat}`) !== `categories_list.${cat}` 
+                        ? t(`categories_list.${cat}`) 
+                        : cat.charAt(0).toUpperCase() + cat.slice(1)}
                     </option>
                   ))}
                 </Input>
@@ -168,6 +178,7 @@ export default function CreateGoal() {
                   onChange={(e) => handleChange('type', e.target.value)}
                   select
                   SelectProps={{ native: true }}
+                  InputLabelProps={{ shrink: true }}
                   required
                   error={Boolean(errors.type)}
                   helperText={errors.type}
@@ -276,10 +287,12 @@ export default function CreateGoal() {
               }}
             >
               <Typography variant="h6" fontWeight="600" gutterBottom>
-                {isEdit ? 'Update Goal' : 'Create Goal'}
+                {isEdit ? t('createGoal.update') : t('createGoal.create')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Fill in all the details to create your new goal. Make sure to set realistic targets!
+                {isEdit 
+                  ? "Update your goal details below." 
+                  : "Fill in all the details to create your new goal. Make sure to set realistic targets!"}
               </Typography>
 
               <Button
