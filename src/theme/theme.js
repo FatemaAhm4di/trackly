@@ -8,7 +8,7 @@ export const createAppTheme = (mode, direction = 'ltr') => createTheme({
     primary: {
       main: '#0966a8',
       light: '#5aa5d9',
-      dark: '#052a46',
+      dark: '#0b385b',
       contrastText: '#ffffff'
     },
     secondary: {
