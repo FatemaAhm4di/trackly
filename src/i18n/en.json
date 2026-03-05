@@ -12,10 +12,10 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome back",
+    "welcome": "Welcome",
     "overallProgress": "Overall Progress",
     "completedGoals": "Completed Goals",
-    "streak": "Current Streak",
+    "streak": "Streak",
     "xpPoints": "XP Points",
     "quickActions": "Quick Actions",
     "newGoal": "+ New Goal",
@@ -25,7 +25,7 @@
     "noActiveGoals": "No active goals yet",
     "createFirstGoal": "Create your first goal to get started",
     "noCompletedGoals": "No completed goals yet",
-    "days": "days",
+    "days": "day",
     "complete": "Complete"
   },
   "goals": {
@@ -56,14 +56,14 @@
     "goalTitle": "Goal Title",
     "titlePlaceholder": "Enter goal title",
     "category": "Category",
-    "selectCategory": "Select category",
+    "selectCategory": "Select a category",
     "goalType": "Goal Type",
     "selectType": "Select goal type",
     "daily": "Daily",
     "count": "Count-based",
     "time": "Time-based",
     "target": "Target",
-    "targetPlaceholder": "Enter target value",
+    "targetPlaceholder": "Enter target amount",
     "startDate": "Start Date",
     "endDate": "End Date (Optional)",
     "color": "Color",
@@ -85,7 +85,7 @@
     "endDate": "End Date",
     "createdAt": "Created At",
     "progressHistory": "Progress History",
-    "noHistory": "No progress recorded yet",
+    "noHistory": "No progress history yet",
     "addProgress": "Add Progress",
     "editGoal": "Edit Goal",
     "markComplete": "Mark as Complete",
@@ -112,17 +112,17 @@
     "dark": "Dark",
     "system": "System",
     "direction": "Layout Direction",
-    "ltr": "Left to Right",
-    "rtl": "Right to Left",
+    "ltr": "LTR",
+    "rtl": "RTL",
     "save": "Save Settings",
     "success": "Settings saved successfully",
     "aboutTitle": "About Trackly",
-    "description": "Trackly is a goal tracking application built with React, Vite, and Material UI.",
+    "description": "Trackly is a goal tracking app built with React, Vite, and Material UI.",
     "version": "Version",
     "languages": "Languages",
     "features": "Features",
-    "featureList": "Goal Management, Progress Tracking, Streak System, XP/Gamification",
-    "currentMode": "Current: {{mode}} Mode"
+    "featureList": "Goal Management, Progress Tracking, Streak System, XP System",
+    "currentMode": "Current: {{mode}} mode"
   },
   "common": {
     "loading": "Loading...",
@@ -148,18 +148,18 @@
     "hour": "hour"
   },
   "categories_list": {
-    "education": "Education",
-    "creative": "Creativity",
-    "mental": "Mental Health",
-    "career": "Career",
     "health": "Health",
     "fitness": "Fitness",
+    "mental": "Mental Health",
+    "career": "Career",
     "finance": "Finance",
+    "education": "Education",
     "productivity": "Productivity",
-    "social": "Social Life",
+    "social": "Social",
     "family": "Family",
+    "creative": "Creative",
     "travel": "Travel",
-    "spiritual": "Spiritual Growth"
+    "spiritual": "Spiritual"
   },
   "validation": {
     "required": "This field is required",
@@ -176,9 +176,15 @@
     "settingsSaved": "Settings saved successfully",
     "error": "An error occurred"
   },
+  "errors": {
+    "dailyLimit": "You can only add progress once per day",
+    "goalNotFound": "Goal not found",
+    "goalNotActive": "Goal is not active",
+    "unknownError": "An unknown error occurred"
+  },
   "notFound": {
     "title": "404 - Page Not Found",
     "message": "The page you're looking for doesn't exist",
-    "goHome": "Go Back Home"
+    "goHome": "Go to Dashboard"
   }
 }

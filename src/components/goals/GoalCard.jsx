@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../hooks/useLanguage' 
 import Typography from '../ui/Typography'
 import ProgressBar from '../ui/ProgressBar'
-import Icon from '../ui/Icon' // این خط رو اضافه کن
+import Icon from '../ui/Icon' 
 
 export default function GoalCard({ 
   goal, 
@@ -16,6 +16,8 @@ export default function GoalCard({
   const navigate = useNavigate()
   const { t } = useLanguage()
   
+    if (!goal) return null
+
   const progressPercent = goal.target ? (goal.progress / goal.target) * 100 : 0
   const isCompleted = goal.status === 'completed'
   const isPaused = goal.status === 'paused'
@@ -45,6 +47,7 @@ export default function GoalCard({
 
   const handleProgressClick = (e) => {
     e.stopPropagation()
+    e.preventDefault()
     onProgress(goal.id)
   }
 

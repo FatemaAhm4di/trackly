@@ -24,6 +24,9 @@ export default function Dashboard() {
   } = useGoalService()
   
   const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
+  // ✅ اضافه کردن state برای نمایش خطا
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showError, setShowError] = useState(false)
 
   // Safe getters with error handling
   let activeGoals = []
@@ -67,26 +70,24 @@ export default function Dashboard() {
     streak = userStats?.streak || 0
   }
 
-  const handleProgress = (goalId) => {
-    if (!goalId) return
-    try {
-      const result = addProgress(goalId)
-      // اگر خطایی برگشت داده شد (مثل محدودیت 24 ساعته)، می‌تونیم اینجا مدیریت کنیم
-      if (result && !result.success) {
-        // اینجا می‌تونیم از Snackbar یا Notification استفاده کنیم
-        console.log(result.message)
-        // alert(result.message) // یا یک alert ساده برای تست
-      }
-    } catch (error) {
-      console.error('Error adding progress:', error)
-    }
-  }
+  // ✅ اصلاح شده: نمایش پیام خطا به کاربر
+ // در Goals.jsx و Dashboard.jsx - تابع handleProgress رو اینطور تغییر بده:
 
-  // const handleDeleteClick = (goalId, e) => {
-  //   e.stopPropagation()
-  //   if (!goalId) return
-  //   setDeleteDialog({ open: true, goalId })
-  // }
+const handleProgress = (goalId) => {
+  if (!goalId) return
+  const result = addProgress(goalId)
+  
+  if (result && !result.success) {
+    // ✅ اگر message با errors. شروع شد، از t استفاده کن
+    const errorMessage = result.message.startsWith('errors.') 
+      ? t(result.message)  // ترجمه کن
+      : result.message      // همون متن رو نشون بده
+    
+    setErrorMessage(errorMessage)
+    setShowError(true)
+    setTimeout(() => setShowError(false), 3000)
+  }
+}
 
   const handleDeleteConfirm = () => {
     if (deleteDialog.goalId) {
@@ -148,6 +149,25 @@ export default function Dashboard() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      {/* ✅ نمایش پیام خطا */}
+      {showError && (
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 20, 
+          right: 20, 
+          left: 20, 
+          zIndex: 9999,
+          backgroundColor: 'error.main',
+          color: 'white',
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 3,
+          textAlign: 'center'
+        }}>
+          <Typography>{errorMessage}</Typography>
+        </Box>
+      )}
+
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="700" gutterBottom>
           {t('dashboard.welcome') || 'Welcome'}!
@@ -410,7 +430,7 @@ export default function Dashboard() {
           </>
         }
       >
-        <Typography>
+        <Typography variant="body1">
           {t('common.deleteConfirmation') || 'Are you sure you want to delete this goal? This action cannot be undone.'}
         </Typography>
       </Dialog>

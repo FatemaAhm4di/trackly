@@ -30,6 +30,9 @@ export default function Goals() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
+  // ✅ اضافه کردن state برای نمایش خطا
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showError, setShowError] = useState(false)
 
   // استفاده از useMemo برای بهینه‌سازی و جلوگیری از محاسبات اضافه
   const filteredGoals = useMemo(() => {
@@ -49,8 +52,6 @@ export default function Goals() {
     if (searchQuery && searchQuery.trim() !== '') {
       // اطمینان از اینکه searchGoals یک تابع هست و result آرایه هست
       if (typeof searchGoals === 'function') {
-        // اگر searchGoals روی کل goals کار میکنه، باید از result استفاده کنیم
-        // ولی اگر searchGoals جستجو رو روی همه goals انجام میده و نتیجه رو برمیگردونه
         result = searchGoals(searchQuery)
         // بعد از جستجو، دوباره فیلتر وضعیت رو اعمال کن
         if (filter !== 'all') {
@@ -90,15 +91,23 @@ export default function Goals() {
     setSortBy(sort)
   }
 
-  const handleProgress = (goalId) => {
-    if (!goalId) return
-    const result = addProgress(goalId)
-    // اگر خطایی برگشت داده شد، می‌تونیم اینجا مدیریت کنیم
-    if (result && !result.success) {
-      // اینجا می‌تونیم از Snackbar یا Notification استفاده کنیم
-      console.log(result.message)
-    }
+  // در Goals.jsx و Dashboard.jsx - تابع handleProgress رو اینطور تغییر بده:
+
+const handleProgress = (goalId) => {
+  if (!goalId) return
+  const result = addProgress(goalId)
+  
+  if (result && !result.success) {
+    // ✅ اگر message با errors. شروع شد، از t استفاده کن
+    const errorMessage = result.message.startsWith('errors.') 
+      ? t(result.message)  // ترجمه کن
+      : result.message      // همون متن رو نشون بده
+    
+    setErrorMessage(errorMessage)
+    setShowError(true)
+    setTimeout(() => setShowError(false), 3000)
   }
+}
 
   const handleEdit = (goalId) => {
     if (!goalId) return
@@ -127,7 +136,7 @@ export default function Goals() {
   }
 
   // روش با پشتیبانی از ترجمه
-const getEmptyMessage = () => {
+  const getEmptyMessage = () => {
     if (searchQuery) {
         return t('goals.noGoals') || 'No goals found'
     }
@@ -137,10 +146,29 @@ const getEmptyMessage = () => {
         return translatedMessage || `No ${filter} goals found`
     }
     return t('goals.noGoals') || 'No goals yet. Create your first goal!'
-}
+  }
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      {/* ✅ نمایش پیام خطا */}
+      {showError && (
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 20, 
+          right: 20, 
+          left: 20, 
+          zIndex: 9999,
+          backgroundColor: 'error.main',
+          color: 'white',
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 3,
+          textAlign: 'center'
+        }}>
+          <Typography>{errorMessage}</Typography>
+        </Box>
+      )}
+
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="700" gutterBottom>
           {t('goals.title') || 'Goals'}
@@ -185,7 +213,7 @@ const getEmptyMessage = () => {
           </>
         }
       >
-        <Typography>
+        <Typography variant="body1">
           Are you sure you want to delete this goal? This action cannot be undone.
         </Typography>
       </Dialog>

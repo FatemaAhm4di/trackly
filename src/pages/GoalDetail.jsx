@@ -444,6 +444,7 @@ export default function GoalDetail() {
         </Grid>
       </Grid>
 
+      {/* ✅ مشکل hydration رو اینجا حل کردم - تغییر variant به body1 */}
       <Dialog
         open={deleteDialog}
         onClose={() => setDeleteDialog(false)}
@@ -459,11 +460,13 @@ export default function GoalDetail() {
           </>
         }
       >
-        <Typography>
+        {/* مشکل اینجا بود: داخل h2 یک h6 قرار گرفته بود */}
+        <Typography variant="body1"> {/* ✅ تغییر از variant پیش‌فرض (h6) به body1 */}
           Are you sure you want to delete this goal? This action cannot be undone.
         </Typography>
       </Dialog>
 
+      {/* همین تغییر رو اینجا هم اعمال کردم */}
       <Dialog
         open={progressDialog}
         onClose={() => setProgressDialog(false)}
@@ -489,6 +492,7 @@ export default function GoalDetail() {
             fullWidth
           />
         </Box>
+        {/* برای متن داخل Dialog هم می‌تونیم از Typography استفاده کنیم اگه نیاز بود */}
       </Dialog>
     </Box>
   )
