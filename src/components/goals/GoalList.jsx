@@ -2,6 +2,7 @@ import { Box, Grid } from '@mui/material'
 import { useLanguage } from '../../hooks/useLanguage' 
 import Typography from '../ui/Typography'
 import Icon from '../ui/Icon'
+import GoalCard from './GoalCard'
 
 export default function GoalList({ 
   goals, 

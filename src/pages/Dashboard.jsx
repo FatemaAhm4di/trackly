@@ -1,4 +1,4 @@
-import { useState, } from 'react'
+import { useState } from 'react'
 import { Box, Grid, Card, CardContent, IconButton } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
@@ -19,28 +19,82 @@ export default function Dashboard() {
     deleteGoal,
     getOverallProgress,
     getGoalsByStatus,
+    calculateGoalStreak,
     calculateStreak 
   } = useGoalService()
   
   const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
 
-  const activeGoals = getGoalsByStatus('active')
-  const completedGoals = getGoalsByStatus('completed')
-  const overallProgress = getOverallProgress()
+  // Safe getters with error handling
+  let activeGoals = []
+  let completedGoals = []
+  let overallProgress = 0
+  
+  try {
+    activeGoals = getGoalsByStatus('active') || []
+    completedGoals = getGoalsByStatus('completed') || []
+    overallProgress = getOverallProgress() || 0
+  } catch (error) {
+    console.error('Error fetching goals:', error)
+  }
 
-  let streak = 0;
-  if (activeGoals.length > 0) {
-    const totalStreak = activeGoals.reduce((acc, goal) => acc + calculateStreak(goal.id), 0);
-    streak = Math.floor(totalStreak / activeGoals.length) || 0;
+  // Safe streak calculation
+  let streak = 0
+  try {
+    if (activeGoals.length > 0) {
+      // Try to use calculateGoalStreak first, then fallback to calculateStreak
+      const streakFunction = calculateGoalStreak || calculateStreak
+      
+      if (streakFunction) {
+        const totalStreak = activeGoals.reduce((acc, goal) => {
+          try {
+            return acc + (streakFunction(goal.id) || 0)
+          } catch (error) {
+            console.error('Error calculating streak for goal:', goal.id, error)
+            return acc + 0
+          }
+        }, 0)
+        streak = Math.floor(totalStreak / activeGoals.length) || 0
+      } else {
+        // Fallback to userStats streak
+        streak = userStats?.streak || 0
+      }
+    } else {
+      streak = userStats?.streak || 0
+    }
+  } catch (error) {
+    console.error('Error calculating streak:', error)
+    streak = userStats?.streak || 0
   }
 
   const handleProgress = (goalId) => {
-    addProgress(goalId)
+    if (!goalId) return
+    try {
+      const result = addProgress(goalId)
+      // اگر خطایی برگشت داده شد (مثل محدودیت 24 ساعته)، می‌تونیم اینجا مدیریت کنیم
+      if (result && !result.success) {
+        // اینجا می‌تونیم از Snackbar یا Notification استفاده کنیم
+        console.log(result.message)
+        // alert(result.message) // یا یک alert ساده برای تست
+      }
+    } catch (error) {
+      console.error('Error adding progress:', error)
+    }
   }
+
+  // const handleDeleteClick = (goalId, e) => {
+  //   e.stopPropagation()
+  //   if (!goalId) return
+  //   setDeleteDialog({ open: true, goalId })
+  // }
 
   const handleDeleteConfirm = () => {
     if (deleteDialog.goalId) {
-      deleteGoal(deleteDialog.goalId)
+      try {
+        deleteGoal(deleteDialog.goalId)
+      } catch (error) {
+        console.error('Error deleting goal:', error)
+      }
       setDeleteDialog({ open: false, goalId: null })
     }
   }
@@ -49,32 +103,43 @@ export default function Dashboard() {
     setDeleteDialog({ open: false, goalId: null })
   }
 
+  const handleGoalClick = (goalId) => {
+    if (!goalId) return
+    navigate(`/goals/${goalId}`)
+  }
+
+  // Safe userStats with defaults
+  const safeUserStats = {
+    completedCount: userStats?.completedCount || 0,
+    xpTotal: userStats?.xpTotal || 0,
+    streak: userStats?.streak || 0
+  }
 
   const statCards = [
     {
-      title: t('dashboard.overallProgress'),
+      title: t('dashboard.overallProgress') || 'Overall Progress',
       value: `${Math.round(overallProgress)}%`,
       icon: 'TrendingUp',
       color: 'primary',
       bgColor: 'rgba(54, 138, 199, 0.1)'
     },
     {
-      title: t('dashboard.completedGoals'),
-      value: userStats.completedCount,
+      title: t('dashboard.completedGoals') || 'Completed Goals',
+      value: safeUserStats.completedCount,
       icon: 'CheckCircle',
       color: 'success',
       bgColor: 'rgba(76, 175, 80, 0.1)'
     },
     {
-      title: t('dashboard.streak'),
-      value: `${streak} ${t('common.days')}`,
+      title: t('dashboard.streak') || 'Streak',
+      value: `${streak} ${t('common.days') || 'days'}`,
       icon: 'LocalFireDepartment',
       color: 'warning',
       bgColor: 'rgba(255, 152, 0, 0.1)'
     },
     {
-      title: t('dashboard.xpPoints'),
-      value: userStats.xpTotal,
+      title: t('dashboard.xpPoints') || 'XP Points',
+      value: safeUserStats.xpTotal,
       icon: 'EmojiEvents',
       color: 'secondary',
       bgColor: 'rgba(14, 84, 136, 0.1)'
@@ -82,16 +147,17 @@ export default function Dashboard() {
   ]
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="700" gutterBottom>
-          {t('dashboard.welcome')}!
+          {t('dashboard.welcome') || 'Welcome'}!
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          {t('dashboard.title')}
+          {t('dashboard.title') || 'Track your goals and progress'}
         </Typography>
       </Box>
 
+      {/* Stat Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {statCards.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -131,40 +197,42 @@ export default function Dashboard() {
         ))}
       </Grid>
 
+      {/* Quick Actions */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" fontWeight="600">
-            {t('dashboard.quickActions')}
+            {t('dashboard.quickActions') || 'Quick Actions'}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             color="primary"
-            startIcon="Add"
+            startIcon={<Icon name="Add" size={20} />}
             onClick={() => navigate('/goals/new')}
             sx={{ px: 3 }}
           >
-            {t('dashboard.newGoal')}
+            {t('dashboard.newGoal') || 'New Goal'}
           </Button>
           <Button
             variant="outlined"
             color="primary"
-            startIcon="Flag"
+            startIcon={<Icon name="Flag" size={20} />}
             onClick={() => navigate('/goals')}
             sx={{ px: 3 }}
           >
-            {t('dashboard.viewAllGoals')}
+            {t('dashboard.viewAllGoals') || 'View All Goals'}
           </Button>
         </Box>
       </Box>
 
+      {/* Active Goals */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" fontWeight="600">
-            {t('dashboard.activeGoals')}
+            {t('dashboard.activeGoals') || 'Active Goals'}
           </Typography>
-          <IconButton onClick={() => navigate('/goals')}>
+          <IconButton onClick={() => navigate('/goals')} size="small">
             <Icon name="ArrowForward" size={20} />
           </IconButton>
         </Box>
@@ -180,23 +248,44 @@ export default function Dashboard() {
                       boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
                     },
                     transition: 'all 0.3s ease',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    height: '100%'
                   }}
-                  onClick={() => navigate(`/goals/${goal.id}`)}
+                  onClick={() => handleGoalClick(goal.id)}
                 >
                   <CardContent>
-                    <Typography variant="h6" fontWeight="600" gutterBottom>
-                      {goal.title}
+                    <Typography variant="h6" fontWeight="600" gutterBottom noWrap>
+                      {goal.title || 'Untitled Goal'}
                     </Typography>
+                    
+                    {/* Category Badge */}
                     <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          backgroundColor: 'primary.light',
+                          color: 'white',
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 2,
+                          display: 'inline-block'
+                        }}
+                      >
+                        {goal.category || 'other'}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Progress Bar */}
+                    <Box sx={{ mb: 1 }}>
                       <ProgressBar 
-                        value={(goal.progress / goal.target) * 100} 
+                        value={goal.target ? (goal.progress / goal.target) * 100 : 0} 
                         color="primary"
                       />
                     </Box>
+                    
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="body2" color="text.secondary">
-                        {goal.progress} / {goal.target}
+                        {goal.progress || 0} / {goal.target || 0}
                       </Typography>
                       <IconButton 
                         size="small"
@@ -210,7 +299,7 @@ export default function Dashboard() {
                           '&:hover': { backgroundColor: 'success.dark' }
                         }}
                       >
-                        <Icon name="CheckCircle" size={18} />
+                        <Icon name="Add" size={18} />
                       </IconButton>
                     </Box>
                   </CardContent>
@@ -223,30 +312,31 @@ export default function Dashboard() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <Icon name="Inbox" size={64} color="text.disabled" sx={{ mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
-                {t('dashboard.noActiveGoals')}
+                {t('dashboard.noActiveGoals') || 'No active goals'}
               </Typography>
               <Typography variant="body2" color="text.disabled" sx={{ mb: 2 }}>
-                {t('dashboard.createFirstGoal')}
+                {t('dashboard.createFirstGoal') || 'Create your first goal to get started'}
               </Typography>
               <Button
                 variant="contained"
                 color="primary"
-                startIcon="Add"
+                startIcon={<Icon name="Add" size={20} />}
                 onClick={() => navigate('/goals/new')}
               >
-                {t('dashboard.newGoal')}
+                {t('dashboard.newGoal') || 'New Goal'}
               </Button>
             </CardContent>
           </Card>
         )}
       </Box>
 
+      {/* Completed Goals Preview */}
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" fontWeight="600">
-            {t('dashboard.completedGoalsPreview')}
+            {t('dashboard.completedGoalsPreview') || 'Recently Completed'}
           </Typography>
-          <IconButton onClick={() => navigate('/goals?filter=completed')}>
+          <IconButton onClick={() => navigate('/goals?filter=completed')} size="small">
             <Icon name="ArrowForward" size={20} />
           </IconButton>
         </Box>
@@ -266,9 +356,10 @@ export default function Dashboard() {
                       boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
                     },
                     transition: 'all 0.3s ease',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    height: '100%'
                   }}
-                  onClick={() => navigate(`/goals/${goal.id}`)}
+                  onClick={() => handleGoalClick(goal.id)}
                 >
                   <CardContent>
                     <Typography 
@@ -276,13 +367,14 @@ export default function Dashboard() {
                       fontWeight="600" 
                       gutterBottom
                       sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+                      noWrap
                     >
-                      {goal.title}
+                      {goal.title || 'Untitled Goal'}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon name="CheckCircle" size={20} color="success" />
                       <Typography variant="body2" color="success.main">
-                        {t('dashboard.complete')}
+                        {t('dashboard.complete') || 'Completed'}
                       </Typography>
                     </Box>
                   </CardContent>
@@ -295,29 +387,32 @@ export default function Dashboard() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <Icon name="Celebration" size={64} color="text.disabled" sx={{ mb: 2 }} />
               <Typography variant="h6" color="text.secondary">
-                {t('dashboard.noCompletedGoals')}
+                {t('dashboard.noCompletedGoals') || 'No completed goals yet'}
               </Typography>
             </CardContent>
           </Card>
         )}
       </Box>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
         onClose={handleDeleteCancel}
-        title="Delete Goal"
+        title={t('common.deleteGoal') || 'Delete Goal'}
         actions={
           <>
             <Button onClick={handleDeleteCancel} variant="outlined" color="inherit">
-              {t('common.cancel')}
+              {t('common.cancel') || 'Cancel'}
             </Button>
             <Button onClick={handleDeleteConfirm} variant="contained" color="error">
-              {t('common.delete')}
+              {t('common.delete') || 'Delete'}
             </Button>
           </>
         }
       >
-        Are you sure you want to delete this goal? This action cannot be undone.
+        <Typography>
+          {t('common.deleteConfirmation') || 'Are you sure you want to delete this goal? This action cannot be undone.'}
+        </Typography>
       </Dialog>
     </Box>
   )

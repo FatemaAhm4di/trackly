@@ -3,8 +3,12 @@ import { useState } from 'react'
 import { useLanguage } from '../../hooks/useLanguage' 
 import Input from '../ui/Input'
 import Button from '../ui/Button'
+import Icon from '../ui/Icon' // این خط اضافه شد
 
 export default function GoalFilters({ 
+  filter: externalFilter, // دریافت filter از والد
+  searchValue: externalSearchValue, // دریافت search از والد
+  sortValue: externalSortValue, // دریافت sort از والد
   onFilterChange, 
   onSearch, 
   onSort,
@@ -12,24 +16,46 @@ export default function GoalFilters({
   onAddClick 
 }) {
   const { t } = useLanguage()
-  const [filter, setFilter] = useState('all')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('newest')
+  
+  // استفاده از props به جای state داخلی برای هماهنگی با والد
+  const [filter, setFilter] = useState(externalFilter || 'all')
+  const [searchQuery, setSearchQuery] = useState(externalSearchValue || '')
+  const [sortBy, setSortBy] = useState(externalSortValue || 'newest')
+
+  // آپدیت state داخلی وقتی props تغییر میکنه
+  useState(() => {
+    if (externalFilter !== undefined) {
+      setFilter(externalFilter)
+    }
+    if (externalSearchValue !== undefined) {
+      setSearchQuery(externalSearchValue)
+    }
+    if (externalSortValue !== undefined) {
+      setSortBy(externalSortValue)
+    }
+  }, [externalFilter, externalSearchValue, externalSortValue])
 
   const handleFilterChange = (event, newValue) => {
     setFilter(newValue)
-    onFilterChange(newValue)
+    if (onFilterChange) {
+      onFilterChange(newValue)
+    }
   }
 
   const handleSearchChange = (e) => {
     const value = e.target.value
     setSearchQuery(value)
-    onSearch(value)
+    if (onSearch) {
+      onSearch(value)
+    }
   }
 
-  const handleSortChange = (value) => {
-    setSortBy(value)
-    onSort(value)
+  const handleSortChange = () => {
+    const newSort = sortBy === 'newest' ? 'progress' : 'newest'
+    setSortBy(newSort)
+    if (onSort) {
+      onSort(newSort)
+    }
   }
 
   return (
@@ -37,13 +63,14 @@ export default function GoalFilters({
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
         <Box sx={{ flex: 1 }}>
           <Input
-            placeholder={t('goals.search')}
+            placeholder={t('goals.search') || 'Search goals...'}
             value={searchQuery}
             onChange={handleSearchChange}
+            fullWidth
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Icon name="Search" size={20} color="text.secondary" />
+                  <Icon name="Search" size={20} />
                 </InputAdornment>
               )
             }}
@@ -54,11 +81,11 @@ export default function GoalFilters({
           <Button
             variant="contained"
             color="primary"
-            startIcon="Add"
+            startIcon={<Icon name="Add" size={20} />}
             onClick={onAddClick}
             sx={{ whiteSpace: 'nowrap' }}
           >
-            {t('nav.newGoal')}
+            {t('nav.newGoal') || 'New Goal'}
           </Button>
         )}
       </Box>
@@ -77,21 +104,23 @@ export default function GoalFilters({
             }
           }}
         >
-          <Tab label={t('goals.all')} value="all" />
-          <Tab label={t('goals.active')} value="active" />
-          <Tab label={t('goals.completed')} value="completed" />
-          <Tab label={t('goals.paused')} value="paused" />
+          <Tab label={t('goals.all') || 'All'} value="all" />
+          <Tab label={t('goals.active') || 'Active'} value="active" />
+          <Tab label={t('goals.completed') || 'Completed'} value="completed" />
+          <Tab label={t('goals.paused') || 'Paused'} value="paused" />
         </Tabs>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon name="Sort" size={20} color="text.secondary" />
+          <Icon name="Sort" size={20} />
           <Button
             variant="outlined"
             size="small"
-            onClick={() => handleSortChange(sortBy === 'newest' ? 'progress' : 'newest')}
+            onClick={handleSortChange}
             sx={{ textTransform: 'none' }}
           >
-            {sortBy === 'newest' ? t('goals.newest') : t('goals.progress')}
+            {sortBy === 'newest' 
+              ? (t('goals.newest') || 'Newest') 
+              : (t('goals.progress') || 'Progress')}
           </Button>
         </Box>
       </Box>

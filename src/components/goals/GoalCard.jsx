@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../hooks/useLanguage' 
 import Typography from '../ui/Typography'
 import ProgressBar from '../ui/ProgressBar'
+import Icon from '../ui/Icon' // این خط رو اضافه کن
 
 export default function GoalCard({ 
   goal, 
@@ -15,7 +16,7 @@ export default function GoalCard({
   const navigate = useNavigate()
   const { t } = useLanguage()
   
-  const progressPercent = (goal.progress / goal.target) * 100
+  const progressPercent = goal.target ? (goal.progress / goal.target) * 100 : 0
   const isCompleted = goal.status === 'completed'
   const isPaused = goal.status === 'paused'
   
@@ -26,14 +27,14 @@ export default function GoalCard({
   }
 
   const getCategoryLabel = () => {
-    return t(`categories_list.${goal.category}`) || goal.category
+    return t(`categories.${goal.category}`) || goal.category || 'Other'
   }
 
   const getTypeLabel = () => {
     switch (goal.type) {
-      case 'daily': return t('common.days')
-      case 'count': return t('common.sessions')
-      case 'time': return t('common.minutes')
+      case 'daily': return t('common.days') || 'days'
+      case 'count': return t('common.sessions') || 'sessions'
+      case 'time': return t('common.minutes') || 'minutes'
       default: return ''
     }
   }
@@ -74,7 +75,8 @@ export default function GoalCard({
           transform: 'translateY(-4px)',
           boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
         },
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        height: '100%'
       }}
     >
       <CardContent sx={{ p: compact ? 2 : 3 }}>
@@ -89,20 +91,22 @@ export default function GoalCard({
                 textDecoration: isCompleted ? 'line-through' : 'none'
               }}
             >
-              {goal.title}
+              {goal.title || 'Untitled'}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
               <Chip 
                 label={getCategoryLabel()} 
                 size="small" 
                 sx={{ 
-                  backgroundColor: `${goal.color}20`,
-                  color: goal.color,
+                  backgroundColor: goal.color ? `${goal.color}20` : '#368ac720',
+                  color: goal.color || '#368ac7',
                   fontWeight: 500
                 }}
               />
               <Chip 
-                label={isCompleted ? t('goals.completed') : isPaused ? t('goals.paused') : t('goals.active')}
+                label={isCompleted ? (t('goals.completed') || 'Completed') : 
+                       isPaused ? (t('goals.paused') || 'Paused') : 
+                       (t('goals.active') || 'Active')}
                 size="small"
                 color={getStatusColor()}
               />
@@ -121,17 +125,17 @@ export default function GoalCard({
                     '&:hover': { backgroundColor: 'success.dark' }
                   }}
                 >
-                  <Icon name="CheckCircle" size={20} />
+                  <Icon name="Add" size={18} />
                 </IconButton>
               )}
-              <IconButton size="small" onClick={handleEditClick}>
-                <Icon name="Edit" size={20} color="primary" />
+              <IconButton size="small" onClick={handleEditClick} sx={{ color: 'primary.main' }}>
+                <Icon name="Edit" size={18} />
               </IconButton>
-              <IconButton size="small" onClick={handlePauseClick}>
-                <Icon name={isPaused ? 'PlayArrow' : 'Pause'} size={20} color="warning" />
+              <IconButton size="small" onClick={handlePauseClick} sx={{ color: 'warning.main' }}>
+                <Icon name={isPaused ? 'PlayArrow' : 'Pause'} size={18} />
               </IconButton>
-              <IconButton size="small" onClick={handleDeleteClick}>
-                <Icon name="Delete" size={20} color="error" />
+              <IconButton size="small" onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+                <Icon name="Delete" size={18} />
               </IconButton>
             </Box>
           )}
@@ -148,11 +152,19 @@ export default function GoalCard({
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {goal.progress} / {goal.target} {getTypeLabel()}
+            {goal.progress || 0} / {goal.target || 0} {getTypeLabel()}
           </Typography>
           {compact && (
-            <IconButton size="small" onClick={handleProgressClick}>
-              <Icon name="Add" size={18} color="primary" />
+            <IconButton 
+              size="small" 
+              onClick={handleProgressClick}
+              sx={{ 
+                backgroundColor: 'primary.light',
+                color: 'white',
+                '&:hover': { backgroundColor: 'primary.dark' }
+              }}
+            >
+              <Icon name="Add" size={16} />
             </IconButton>
           )}
         </Box>
