@@ -6,7 +6,7 @@ export const createAppTheme = (mode, direction = 'ltr') => createTheme({
   palette: {
     mode,
     primary: {
-      main: '#0960a8',
+      main: '#0f5fa0',
       light: '#5aa5d9',
       dark: '#0b385b',
       contrastText: '#ffffff'
