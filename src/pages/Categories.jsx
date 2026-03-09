@@ -1,12 +1,15 @@
 import { Box, Grid, Card, CardContent, alpha } from "@mui/material";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../hooks/useLanguage";
 import { useGoalService } from "../services/goalService";
 import Typography from "../components/ui/Typography";
 import Icon from "../components/ui/Icon";
+import { PageLoading } from "../components/ui/Loading";
 
 export default function Categories() {
   const { t } = useLanguage();
   const { getGoalsByCategory } = useGoalService();
+  const [loading, setLoading] = useState(true);
   
   const CATEGORIES = [
     { key: "education", icon: "School" },
@@ -23,16 +26,27 @@ export default function Categories() {
     { key: "spiritual", icon: "SelfImprovement" },
   ];
 
+  useEffect(() => {
+    // شبیه‌سازی لودینگ
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   const getCategoryStats = (categoryKey) => {
     const categoryGoals = getGoalsByCategory(categoryKey);
     const active = categoryGoals.filter((g) => g.status === "active").length;
-    const completed = categoryGoals.filter(
-      (g) => g.status === "completed",
-    ).length;
+    const completed = categoryGoals.filter((g) => g.status === "completed").length;
     const total = categoryGoals.length;
 
     return { active, completed, total };
   };
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   return (
     <Box sx={{ py: 4 }}>
@@ -279,9 +293,6 @@ export default function Categories() {
           );
         })}
       </Grid>
-      
-      {/* ✅ بخش مزاحم "No categories found" کاملاً حذف شد */}
-      
     </Box>
   );
 }

@@ -188,10 +188,7 @@
     "goHome": "Go to Dashboard"
   },
   "loading": {
-    "preparing": "Preparing your dashboard...",
-    "loadingGoals": "Loading your goals...",
-    "almostThere": "Almost there...",
-    "ready": "Ready!",
+    "loading": "Loading...",
     "pleaseWait": "Please wait..."
   }
 }
