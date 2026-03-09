@@ -15,8 +15,8 @@ export default function GoalCard({
 }) {
   const navigate = useNavigate()
   const { t } = useLanguage()
-  
-    if (!goal) return null
+
+  if (!goal) return null
 
   const progressPercent = goal.target ? (goal.progress / goal.target) * 100 : 0
   const isCompleted = goal.status === 'completed'
@@ -63,6 +63,7 @@ export default function GoalCard({
 
   const handleDeleteClick = (e) => {
     e.stopPropagation()
+    e.preventDefault()
     onDelete(goal.id)
   }
 
@@ -79,7 +80,8 @@ export default function GoalCard({
           boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
         },
         transition: 'all 0.3s ease',
-        height: '100%'
+        height: '100%',
+        position: 'relative'
       }}
     >
       <CardContent sx={{ p: compact ? 2 : 3 }}>
@@ -137,7 +139,11 @@ export default function GoalCard({
               <IconButton size="small" onClick={handlePauseClick} sx={{ color: 'warning.main' }}>
                 <Icon name={isPaused ? 'PlayArrow' : 'Pause'} size={18} />
               </IconButton>
-              <IconButton size="small" onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+              <IconButton 
+                size="small" 
+                onClick={handleDeleteClick} 
+                sx={{ color: 'error.main' }}
+              >
                 <Icon name="Delete" size={18} />
               </IconButton>
             </Box>

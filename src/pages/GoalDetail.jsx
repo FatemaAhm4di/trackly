@@ -9,6 +9,7 @@ import Icon from '../components/ui/Icon'
 import ProgressBar from '../components/ui/ProgressBar'
 import Dialog from '../components/ui/Dialog'
 import Input from '../components/ui/Input'
+import { PageLoading, ButtonLoading } from '../components/ui/Loading'  // ✅ ایمپورت لودینگ
 
 export default function GoalDetail() {
   const navigate = useNavigate()
@@ -29,6 +30,7 @@ export default function GoalDetail() {
   const [errorMessage, setErrorMessage] = useState('')
   const [showError, setShowError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)  // ✅ state برای لودینگ دکمه‌ها
 
   useEffect(() => {
     let isMounted = true
@@ -41,7 +43,7 @@ export default function GoalDetail() {
         }
         setLoading(false)
       }
-    }, 0)
+    }, 500)  // ✅ افزایش به 500ms برای دیدن لودینگ
     
     return () => {
       isMounted = false
@@ -57,14 +59,7 @@ export default function GoalDetail() {
   }
 
   if (loading) {
-    return (
-      <Box sx={{ textAlign: 'center', py: 8 }}>
-        <Icon name="HourglassEmpty" size={64} color="text.disabled" sx={{ mb: 2 }} />
-        <Typography variant="h5" color="text.secondary">
-          Loading...
-        </Typography>
-      </Box>
-    )
+    return <PageLoading />
   }
 
   if (!goal) {
@@ -101,14 +96,19 @@ export default function GoalDetail() {
   }
 
   const handleProgress = () => {
+    setIsSubmitting(true)
     const result = addProgress(goal.id, progressAmount)
     
     if (result && !result.success) {
       setErrorMessage(result.message || 'شما فقط یکبار در 24 ساعت میتوانید پیشرفت ثبت کنید')
       setShowError(true)
       setTimeout(() => setShowError(false), 3000)
+      setIsSubmitting(false)
     } else {
       refreshGoal()
+      setTimeout(() => {
+        setIsSubmitting(false)
+      }, 300)
     }
     
     setProgressDialog(false)
@@ -116,25 +116,36 @@ export default function GoalDetail() {
   }
 
   const handlePause = () => {
+    setIsSubmitting(true)
     updateGoal(goal.id, { 
       status: isPaused ? 'active' : 'paused' 
     })
     refreshGoal()
+    setTimeout(() => {
+      setIsSubmitting(false)
+    }, 300)
   }
 
   const handleComplete = () => {
+    setIsSubmitting(true)
     updateGoal(goal.id, {
       progress: goal.target,
       status: 'completed',
       completedAt: new Date().toISOString()
     })
     refreshGoal()
+    setTimeout(() => {
+      setIsSubmitting(false)
+    }, 300)
   }
 
   const handleDelete = () => {
+    setIsSubmitting(true)
     deleteGoal(goal.id)
     setDeleteDialog(false)
-    navigate('/goals')
+    setTimeout(() => {
+      navigate('/goals')
+    }, 300)
   }
 
   const getCategoryLabel = () => {
@@ -189,6 +200,7 @@ export default function GoalDetail() {
           startIcon={<Icon name="ArrowBack" size={20} />}
           onClick={() => navigate('/goals')}
           sx={{ mb: 2 }}
+          disabled={isSubmitting}
         >
           {t('goalDetail.back') || 'Back to Goals'}
         </Button>
@@ -226,6 +238,7 @@ export default function GoalDetail() {
                   color="success"
                   startIcon={<Icon name="Add" size={20} />}
                   onClick={() => setProgressDialog(true)}
+                  disabled={isSubmitting}
                 >
                   {t('goalDetail.addProgress') || 'Add Progress'}
                 </Button>
@@ -234,14 +247,16 @@ export default function GoalDetail() {
                   color="warning"
                   startIcon={<Icon name={isPaused ? 'PlayArrow' : 'Pause'} size={20} />}
                   onClick={handlePause}
+                  disabled={isSubmitting}
                 >
-                  {isPaused ? (t('goals.resume') || 'Resume') : (t('goals.pause') || 'Pause')}
+                  {isSubmitting ? <ButtonLoading /> : (isPaused ? (t('goals.resume') || 'Resume') : (t('goals.pause') || 'Pause'))}
                 </Button>
                 <Button
                   variant="outlined"
                   color="primary"
                   startIcon={<Icon name="Edit" size={20} />}
                   onClick={() => navigate(`/goals/new?edit=${goal.id}`)}
+                  disabled={isSubmitting}
                 >
                   {t('common.edit') || 'Edit'}
                 </Button>
@@ -252,6 +267,7 @@ export default function GoalDetail() {
               color="error"
               startIcon={<Icon name="Delete" size={20} />}
               onClick={() => setDeleteDialog(true)}
+              disabled={isSubmitting}
             >
               {t('common.delete') || 'Delete'}
             </Button>
@@ -425,8 +441,9 @@ export default function GoalDetail() {
                     startIcon={<Icon name="CheckCircle" size={20} />}
                     onClick={handleComplete}
                     fullWidth
+                    disabled={isSubmitting}
                   >
-                    {t('goalDetail.markComplete') || 'Mark as Complete'}
+                    {isSubmitting ? <ButtonLoading /> : (t('goalDetail.markComplete') || 'Mark as Complete')}
                   </Button>
                   <Button
                     variant="outlined"
@@ -434,6 +451,7 @@ export default function GoalDetail() {
                     startIcon={<Icon name="Edit" size={20} />}
                     onClick={() => navigate(`/goals/new?edit=${goal.id}`)}
                     fullWidth
+                    disabled={isSubmitting}
                   >
                     {t('goalDetail.editGoal') || 'Edit Goal'}
                   </Button>
@@ -444,40 +462,57 @@ export default function GoalDetail() {
         </Grid>
       </Grid>
 
-      {/* ✅ مشکل hydration رو اینجا حل کردم - تغییر variant به body1 */}
       <Dialog
         open={deleteDialog}
-        onClose={() => setDeleteDialog(false)}
+        onClose={() => !isSubmitting && setDeleteDialog(false)}
         title="Delete Goal"
         actions={
           <>
-            <Button onClick={() => setDeleteDialog(false)} variant="outlined" color="inherit">
+            <Button 
+              onClick={() => setDeleteDialog(false)} 
+              variant="outlined" 
+              color="inherit"
+              disabled={isSubmitting}
+            >
               {t('common.cancel') || 'Cancel'}
             </Button>
-            <Button onClick={handleDelete} variant="contained" color="error">
-              {t('common.delete') || 'Delete'}
+            <Button 
+              onClick={handleDelete} 
+              variant="contained" 
+              color="error"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <ButtonLoading /> : (t('common.delete') || 'Delete')}
             </Button>
           </>
         }
       >
-        {/* مشکل اینجا بود: داخل h2 یک h6 قرار گرفته بود */}
-        <Typography variant="body1"> {/* ✅ تغییر از variant پیش‌فرض (h6) به body1 */}
+        <Typography variant="body1">
           Are you sure you want to delete this goal? This action cannot be undone.
         </Typography>
       </Dialog>
 
-      {/* همین تغییر رو اینجا هم اعمال کردم */}
       <Dialog
         open={progressDialog}
-        onClose={() => setProgressDialog(false)}
+        onClose={() => !isSubmitting && setProgressDialog(false)}
         title={t('goalDetail.addProgress') || 'Add Progress'}
         actions={
           <>
-            <Button onClick={() => setProgressDialog(false)} variant="outlined" color="inherit">
+            <Button 
+              onClick={() => setProgressDialog(false)} 
+              variant="outlined" 
+              color="inherit"
+              disabled={isSubmitting}
+            >
               {t('common.cancel') || 'Cancel'}
             </Button>
-            <Button onClick={handleProgress} variant="contained" color="success">
-              {t('common.add') || 'Add'}
+            <Button 
+              onClick={handleProgress} 
+              variant="contained" 
+              color="success"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <ButtonLoading /> : (t('common.add') || 'Add')}
             </Button>
           </>
         }
@@ -490,9 +525,9 @@ export default function GoalDetail() {
             type="number"
             inputProps={{ min: 1, step: 1 }}
             fullWidth
+            disabled={isSubmitting}
           />
         </Box>
-        {/* برای متن داخل Dialog هم می‌تونیم از Typography استفاده کنیم اگه نیاز بود */}
       </Dialog>
     </Box>
   )

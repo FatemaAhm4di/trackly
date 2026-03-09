@@ -186,5 +186,12 @@
     "title": "404 - Page Not Found",
     "message": "The page you're looking for doesn't exist",
     "goHome": "Go to Dashboard"
+  },
+  "loading": {
+    "preparing": "Preparing your dashboard...",
+    "loadingGoals": "Loading your goals...",
+    "almostThere": "Almost there...",
+    "ready": "Ready!",
+    "pleaseWait": "Please wait..."
   }
 }

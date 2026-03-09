@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Grid, Card, CardContent, IconButton } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
@@ -8,6 +8,7 @@ import Typography from '../components/ui/Typography'
 import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import Dialog from '../components/ui/Dialog'
+import { PageLoading } from '../components/ui/Loading'  // ✅ ایمپورت لودینگ
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -18,15 +19,22 @@ export default function Dashboard() {
     addProgress,
     deleteGoal,
     getOverallProgress,
-    getGoalsByStatus,
-    calculateGoalStreak,
-    calculateStreak 
+    getGoalsByStatus
   } = useGoalService()
   
+  const [loading, setLoading] = useState(true)  // ✅ state لودینگ
   const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
-  // ✅ اضافه کردن state برای نمایش خطا
   const [errorMessage, setErrorMessage] = useState('')
   const [showError, setShowError] = useState(false)
+
+  // ✅ useEffect برای لودینگ
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 500)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   // Safe getters with error handling
   let activeGoals = []
@@ -41,53 +49,34 @@ export default function Dashboard() {
     console.error('Error fetching goals:', error)
   }
 
-  // Safe streak calculation
+  // ✅ استفاده مستقیم از userStats.streak
   let streak = 0
   try {
-    if (activeGoals.length > 0) {
-      // Try to use calculateGoalStreak first, then fallback to calculateStreak
-      const streakFunction = calculateGoalStreak || calculateStreak
-      
-      if (streakFunction) {
-        const totalStreak = activeGoals.reduce((acc, goal) => {
-          try {
-            return acc + (streakFunction(goal.id) || 0)
-          } catch (error) {
-            console.error('Error calculating streak for goal:', goal.id, error)
-            return acc + 0
-          }
-        }, 0)
-        streak = Math.floor(totalStreak / activeGoals.length) || 0
-      } else {
-        // Fallback to userStats streak
-        streak = userStats?.streak || 0
-      }
-    } else {
-      streak = userStats?.streak || 0
-    }
+    streak = userStats?.streak || 0
   } catch (error) {
     console.error('Error calculating streak:', error)
     streak = userStats?.streak || 0
   }
 
-  // ✅ اصلاح شده: نمایش پیام خطا به کاربر
- // در Goals.jsx و Dashboard.jsx - تابع handleProgress رو اینطور تغییر بده:
-
-const handleProgress = (goalId) => {
-  if (!goalId) return
-  const result = addProgress(goalId)
-  
-  if (result && !result.success) {
-    // ✅ اگر message با errors. شروع شد، از t استفاده کن
-    const errorMessage = result.message.startsWith('errors.') 
-      ? t(result.message)  // ترجمه کن
-      : result.message      // همون متن رو نشون بده
-    
-    setErrorMessage(errorMessage)
-    setShowError(true)
-    setTimeout(() => setShowError(false), 3000)
+  // ✅ نمایش لودینگ
+  if (loading) {
+    return <PageLoading />
   }
-}
+
+  const handleProgress = (goalId) => {
+    if (!goalId) return
+    const result = addProgress(goalId)
+    
+    if (result && !result.success) {
+      const errorMessage = result.message.startsWith('errors.') 
+        ? t(result.message)
+        : result.message
+      
+      setErrorMessage(errorMessage)
+      setShowError(true)
+      setTimeout(() => setShowError(false), 3000)
+    }
+  }
 
   const handleDeleteConfirm = () => {
     if (deleteDialog.goalId) {
@@ -149,7 +138,6 @@ const handleProgress = (goalId) => {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      {/* ✅ نمایش پیام خطا */}
       {showError && (
         <Box sx={{ 
           position: 'fixed', 
@@ -177,7 +165,6 @@ const handleProgress = (goalId) => {
         </Typography>
       </Box>
 
-      {/* Stat Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {statCards.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -217,7 +204,6 @@ const handleProgress = (goalId) => {
         ))}
       </Grid>
 
-      {/* Quick Actions */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" fontWeight="600">
@@ -246,7 +232,6 @@ const handleProgress = (goalId) => {
         </Box>
       </Box>
 
-      {/* Active Goals */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" fontWeight="600">
@@ -278,7 +263,6 @@ const handleProgress = (goalId) => {
                       {goal.title || 'Untitled Goal'}
                     </Typography>
                     
-                    {/* Category Badge */}
                     <Box sx={{ mb: 2 }}>
                       <Typography 
                         variant="caption" 
@@ -295,7 +279,6 @@ const handleProgress = (goalId) => {
                       </Typography>
                     </Box>
                     
-                    {/* Progress Bar */}
                     <Box sx={{ mb: 1 }}>
                       <ProgressBar 
                         value={goal.target ? (goal.progress / goal.target) * 100 : 0} 
@@ -350,7 +333,6 @@ const handleProgress = (goalId) => {
         )}
       </Box>
 
-      {/* Completed Goals Preview */}
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" fontWeight="600">
@@ -414,7 +396,6 @@ const handleProgress = (goalId) => {
         )}
       </Box>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
         onClose={handleDeleteCancel}

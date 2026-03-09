@@ -7,6 +7,7 @@ import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
+import { ButtonLoading } from '../components/ui/Loading'  // ✅ ایمپورت لودینگ دکمه
 
 const COLORS = [
   '#368ac7', '#0e5488', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#e91e63', '#00bcd4'
@@ -33,8 +34,8 @@ export default function CreateGoal() {
   })
 
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)  // ✅ state برای لودینگ دکمه
 
-  // ✅ لیست آپدیت شده با ۱۲ دسته‌بندی جدید
   const CATEGORIES = [
     'education', 'creative', 'mental', 'career', 
     'health', 'fitness', 'finance', 'productivity', 
@@ -85,23 +86,31 @@ export default function CreateGoal() {
     e.preventDefault()
     
     if (!validate()) return
+    setIsSubmitting(true)  // ✅ شروع لودینگ
 
-    if (isEdit && existingGoal) {
-      updateGoal(id, {
-        title: formData.title,
-        category: formData.category,
-        type: formData.type,
-        target: Number(formData.target),
-        startDate: formData.startDate,
-        endDate: formData.endDate || null,
-        color: formData.color,
-        notes: formData.notes
-      })
-    } else {
-      createGoal(formData)
+    try {
+      if (isEdit && existingGoal) {
+        updateGoal(id, {
+          title: formData.title,
+          category: formData.category,
+          type: formData.type,
+          target: Number(formData.target),
+          startDate: formData.startDate,
+          endDate: formData.endDate || null,
+          color: formData.color,
+          notes: formData.notes
+        })
+      } else {
+        createGoal(formData)
+      }
+
+      setTimeout(() => {
+        navigate('/goals')
+      }, 300)  // کمی تاخیر برای نمایش لودینگ
+    } catch (error) {
+      console.error('Error saving goal:', error)
+      setIsSubmitting(false)
     }
-
-    navigate('/goals')
   }
 
   const getTypeLabel = (type) => {
@@ -118,7 +127,7 @@ export default function CreateGoal() {
       <Box sx={{ mb: 4 }}>
         <Button
           variant="text"
-          startIcon="ArrowBack"
+          startIcon={<Icon name="ArrowBack" size={20} />}
           onClick={() => navigate('/goals')}
           sx={{ mb: 2 }}
         >
@@ -142,23 +151,24 @@ export default function CreateGoal() {
               helperText={errors.title}
               fullWidth
               sx={{ mb: 3 }}
+              disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
             />
 
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
-                {/* ✅ اصلاح فیلد Category برای تراز شدن متن */}
                 <Input
                   label={t('createGoal.category')}
                   value={formData.category}
                   onChange={(e) => handleChange('category', e.target.value)}
                   select
                   SelectProps={{ native: true }}
-                  InputLabelProps={{ shrink: true }} // این خط باعث می‌شود لیبل مثل Goal Type رفتار کند
+                  InputLabelProps={{ shrink: true }}
                   required
                   error={Boolean(errors.category)}
                   helperText={errors.category}
                   fullWidth
                   sx={{ mb: 3 }}
+                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
                 >
                   <option value="">{t('createGoal.selectCategory')}</option>
                   {CATEGORIES.map((cat) => (
@@ -184,6 +194,7 @@ export default function CreateGoal() {
                   helperText={errors.type}
                   fullWidth
                   sx={{ mb: 3 }}
+                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
                 >
                   <option value="">{t('createGoal.selectType')}</option>
                   <option value="daily">{t('createGoal.daily')}</option>
@@ -205,6 +216,7 @@ export default function CreateGoal() {
               fullWidth
               sx={{ mb: 3 }}
               inputProps={{ min: 1 }}
+              disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
             />
 
             <Grid container spacing={3}>
@@ -220,6 +232,7 @@ export default function CreateGoal() {
                   fullWidth
                   sx={{ mb: 3 }}
                   InputLabelProps={{ shrink: true }}
+                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
                 />
               </Grid>
 
@@ -234,6 +247,7 @@ export default function CreateGoal() {
                   fullWidth
                   sx={{ mb: 3 }}
                   InputLabelProps={{ shrink: true }}
+                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
                 />
               </Grid>
             </Grid>
@@ -246,17 +260,18 @@ export default function CreateGoal() {
                 {COLORS.map((color) => (
                   <Box
                     key={color}
-                    onClick={() => handleChange('color', color)}
+                    onClick={() => !isSubmitting && handleChange('color', color)}  // ✅ غیرفعال کردن هنگام ارسال
                     sx={{
                       width: 40,
                       height: 40,
                       borderRadius: '50%',
                       backgroundColor: color,
-                      cursor: 'pointer',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',  // ✅ تغییر cursor
                       border: formData.color === color ? '3px solid text.primary' : '2px solid transparent',
                       transition: 'all 0.2s ease',
+                      opacity: isSubmitting ? 0.5 : 1,  // ✅ کم کردن opacity
                       '&:hover': {
-                        transform: 'scale(1.1)'
+                        transform: isSubmitting ? 'none' : 'scale(1.1)'
                       }
                     }}
                   />
@@ -273,6 +288,7 @@ export default function CreateGoal() {
               rows={4}
               fullWidth
               sx={{ mb: 3 }}
+              disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
             />
           </Grid>
 
@@ -300,10 +316,11 @@ export default function CreateGoal() {
                 variant="contained"
                 color="primary"
                 fullWidth
-                startIcon={isEdit ? 'Save' : 'Add'}
+                disabled={isSubmitting}  // ✅ غیرفعال کردن دکمه
+                startIcon={isSubmitting ? null : <Icon name={isEdit ? 'Save' : 'Add'} size={20} />}
                 sx={{ mb: 2 }}
               >
-                {isEdit ? t('createGoal.update') : t('createGoal.create')}
+                {isSubmitting ? <ButtonLoading /> : (isEdit ? t('createGoal.update') : t('createGoal.create'))}
               </Button>
 
               <Button
@@ -311,6 +328,7 @@ export default function CreateGoal() {
                 color="inherit"
                 fullWidth
                 onClick={() => navigate('/goals')}
+                disabled={isSubmitting}  // ✅ غیرفعال کردن دکمه
               >
                 {t('createGoal.cancel')}
               </Button>
