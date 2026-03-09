@@ -8,7 +8,8 @@
     "goals": "Goals",
     "categories": "Categories",
     "settings": "Settings",
-    "newGoal": "New Goal"
+    "newGoal": "New Goal",
+    "archive": "Archive"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -105,6 +106,7 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Customize your app experience",
     "language": "Language",
     "selectLanguage": "Select Language",
     "theme": "Theme",
@@ -118,11 +120,22 @@
     "success": "Settings saved successfully",
     "aboutTitle": "About Trackly",
     "description": "Trackly is a goal tracking app built with React, Vite, and Material UI.",
+    "fullDescription": "Trackly is a powerful goal tracking application built with React and Material UI. It helps you manage your daily goals, track progress, and achieve your targets with style.",
     "version": "Version",
     "languages": "Languages",
     "features": "Features",
     "featureList": "Goal Management, Progress Tracking, Streak System, XP System",
-    "currentMode": "Current: {{mode}} mode"
+    "currentMode": "Current: {{mode}} mode",
+    "lastUpdate": "Last Update",
+    "march2026": "March 2026",
+    "developer": "Developer",
+    "team": "Fatema Ahmadi",
+    "additionalFeatures": "Additional Features",
+    "additionalList": "Multi-language, RTL Support, Dark/Light Theme, Progress Tracking, Streak System, XP Points, Archive, Categories",
+    "morning": "Good Morning",
+    "afternoon": "Good Afternoon",
+    "evening": "Good Evening",
+    "localTime": "Local Time"
   },
   "common": {
     "loading": "Loading...",
@@ -145,7 +158,8 @@
     "minutes": "minutes",
     "minute": "minute",
     "hours": "hours",
-    "hour": "hour"
+    "hour": "hour",
+    "seconds": "seconds"
   },
   "categories_list": {
     "health": "Health",
@@ -190,5 +204,23 @@
   "loading": {
     "loading": "Loading...",
     "pleaseWait": "Please wait..."
+  },
+  "archive": {
+    "title": "Archive",
+    "subtitle": "View and manage your completed goals",
+    "all": "All",
+    "completed": "Completed",
+    "archived": "Archived",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "clear": "Clear",
+    "restore": "Restore",
+    "delete": "Delete",
+    "permanentDelete": "Permanently Delete",
+    "completedAt": "Completed",
+    "progress": "Progress",
+    "empty": "No archived goals",
+    "emptyHint": "Completed goals will appear here"
   }
 }

@@ -10,6 +10,7 @@ export default function Layout({ children }) {
       flexDirection: 'column'
     }}>
       <Navbar />
+      
       <Box 
         component="main" 
         sx={{ 

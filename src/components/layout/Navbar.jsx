@@ -17,6 +17,7 @@ export default function Navbar() {
     { path: '/dashboard', label: t('nav.dashboard'), icon: 'Dashboard' },
     { path: '/goals', label: t('nav.goals'), icon: 'Flag' },
     { path: '/categories', label: t('nav.categories'), icon: 'Category' },
+    { path: '/archive', label: t('nav.archive'), icon: 'Archive' },    
     { path: '/settings', label: t('nav.settings'), icon: 'Settings' }
   ]
 

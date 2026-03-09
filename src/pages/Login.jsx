@@ -1,30 +1,26 @@
-// import { useEffect } from 'react'
-// import { useNavigate } from 'react-router-dom'
-// import { useAuth } from '../hooks/useAuth'
-// import AuthLayout from '../components/auth/AuthLayout'
-// import LoginForm from '../components/auth/LoginForm'
-// import { PageLoading } from '../components/ui/Loading'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import AuthLayout from '../components/auth/AuthLayout'
+import LoginForm from '../components/auth/LoginForm'
 
-// export default function Login() {
-//   const navigate = useNavigate()
-//   const { user, loading } = useAuth()
+export default function Login() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
 
-//   useEffect(() => {
-//     if (user && !loading) {
-//       navigate('/')
-//     }
-//   }, [user, loading, navigate])
+  useEffect(() => {
+    // اگه کاربر قبلاً لاگین کرده، بره به داشبورد
+    if (user) {
+      navigate('/')
+    }
+  }, [user, navigate])
 
-//   if (loading) {
-//     return <PageLoading />
-//   }
-
-//   return (
-//     <AuthLayout
-//       title="Sign In"
-//       subtitle="Unlock your world"
-//     >
-//       <LoginForm />
-//     </AuthLayout>
-//   )
-// }
+  return (
+    <AuthLayout
+      title="Welcome Back"
+      subtitle="Sign in to continue your journey"
+    >
+      <LoginForm />
+    </AuthLayout>
+  )
+}

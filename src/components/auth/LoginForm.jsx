@@ -1,80 +1,216 @@
-// import { useState } from 'react'
-// import { Box, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel, Link, Alert } from '@mui/material'
-// import { useNavigate } from 'react-router-dom'
-// import { useLanguage } from '../../hooks/useLanguage'
-// import { useAuth } from '../../hooks/useAuth'
-// import Button from '../ui/Button'
-// import Icon from '../ui/Icon'
-// import Typography from '../ui/Typography'
+import { useState } from 'react'
+import { Box, TextField, InputAdornment, IconButton, Alert, Link, Divider } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
+import Button from '../ui/Button'
+import Icon from '../ui/Icon'
+import Typography from '../ui/Typography'
 
-// export default function LoginForm() {
-//   const navigate = useNavigate()
-//   const { t } = useLanguage()
-//   const { login } = useAuth()
+export default function LoginForm() {
+  const navigate = useNavigate()
+  const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, loading } = useAuth()
   
-//   const [formData, setFormData] = useState({
-//     email: '',
-//     password: ''
-//   })
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
   
-//   const [showPassword, setShowPassword] = useState(false)
-//   const [rememberMe, setRememberMe] = useState(false)
-//   const [error, setError] = useState('')
-//   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [localLoading, setLocalLoading] = useState(false)
 
-//   const handleChange = (e) => {
-//     const { name, value } = e.target
-//     setFormData(prev => ({ ...prev, [name]: value }))
-//     if (error) setError('')
-//   }
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    if (error) setError('')
+  }
 
-//   const handleSubmit = (e) => {
-//     e.preventDefault()
-//     setLoading(true)
-//     setError('')
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLocalLoading(true)
+    setError('')
 
-//     if (!formData.email || !formData.password) {
-//       setError('Please fill in all fields')
-//       setLoading(false)
-//       return
-//     }
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all fields')
+      setLocalLoading(false)
+      return
+    }
 
-//     setTimeout(() => {
-//       const result = login(formData.email, formData.password)
-//       if (result.success) {
-//         navigate('/')
-//       } else {
-//         setError('Invalid email or password')
-//       }
-//       setLoading(false)
-//     }, 1000)
-//   }
+    const result = login(formData.email, formData.password)
+    if (result.success) {
+      navigate('/')
+    } else {
+      setError(result.error)
+    }
+    setLocalLoading(false)
+  }
 
-//   return (
-//     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-//       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+  const handleSocialLogin = async (provider) => {
+    let result
+    switch(provider) {
+      case 'google':
+        result = await loginWithGoogle()
+        break
+      case 'facebook':
+        result = await loginWithFacebook()
+        break
+      case 'github':
+        result = await loginWithGithub()
+        break
+    }
+    
+    if (result?.success) {
+      navigate('/')
+    } else {
+      setError(result?.error || 'Login failed')
+    }
+  }
 
-//       <TextField fullWidth name="email" type="email" placeholder={t('auth.enterEmail') || 'Enter your email'} value={formData.email} onChange={handleChange} sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 2, backgroundColor: '#f8f9fa' } }} InputProps={{ startAdornment: (<InputAdornment position="start"><Icon name="Email" size={20} color="text.secondary" /></InputAdornment>) }} />
+  return (
+    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-//       <TextField fullWidth name="password" type={showPassword ? 'text' : 'password'} placeholder={t('auth.enterPassword') || 'Enter your password'} value={formData.password} onChange={handleChange} sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2, backgroundColor: '#f8f9fa' } }} InputProps={{ startAdornment: (<InputAdornment position="start"><Icon name="Lock" size={20} color="text.secondary" /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end"><Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} /></IconButton></InputAdornment>) }} />
+      <TextField
+        fullWidth
+        name="email"
+        type="email"
+        placeholder="Email address"
+        value={formData.email}
+        onChange={handleChange}
+        sx={{ mb: 3 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Icon name="Email" size={20} />
+            </InputAdornment>
+          )
+        }}
+      />
 
-//       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-//         <FormControlLabel control={<Checkbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} color="primary" />} label={t('auth.rememberMe') || 'Remember me'} />
-//         <Link href="#" underline="hover" sx={{ color: 'primary.main', cursor: 'pointer' }}>{t('auth.forgotPassword') || 'Forgot Password?'}</Link>
-//       </Box>
+      <TextField
+        fullWidth
+        name="password"
+        type={showPassword ? 'text' : 'password'}
+        placeholder="Password"
+        value={formData.password}
+        onChange={handleChange}
+        sx={{ mb: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Icon name="Lock" size={20} />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                <Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
+              </IconButton>
+            </InputAdornment>
+          )
+        }}
+      />
 
-//       <Button type="submit" variant="contained" color="primary" fullWidth size="large" disabled={loading} sx={{ py: 1.5, borderRadius: 2, fontSize: '1.1rem', mb: 3 }}>
-//         {loading ? 'Please wait...' : (t('auth.signIn') || 'Sign In')}
-//       </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+        <Link href="#" underline="hover" color="text.secondary">
+          Forgot password?
+        </Link>
+      </Box>
 
-//       <Box sx={{ textAlign: 'center' }}>
-//         <Typography variant="body2" color="text.secondary" display="inline">
-//           {t('auth.noAccount') || "Don't have an account? "}
-//         </Typography>
-//         <Link href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }} underline="hover" sx={{ color: 'primary.main', cursor: 'pointer', fontWeight: 600 }}>
-//           {t('auth.createAccount') || 'Create account'}
-//         </Link>
-//       </Box>
-//     </Box>
-//   )
-// }
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        fullWidth
+        size="large"
+        disabled={localLoading || loading}
+        sx={{ py: 1.8, borderRadius: 2, mb: 3 }}
+      >
+        {localLoading ? 'Signing in...' : 'Sign In'}
+      </Button>
+
+      <Divider sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary">
+          Or continue with
+        </Typography>
+      </Divider>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <IconButton
+          onClick={() => handleSocialLogin('google')}
+          disabled={loading}
+          sx={{
+            flex: 1,
+            py: 1.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            color: '#DB4437',
+            '&:hover': {
+              borderColor: '#DB4437',
+              bgcolor: 'rgba(219, 68, 55, 0.04)'
+            }
+          }}
+        >
+          <Icon name="Google" size={24} />
+        </IconButton>
+
+        <IconButton
+          onClick={() => handleSocialLogin('facebook')}
+          disabled={loading}
+          sx={{
+            flex: 1,
+            py: 1.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            color: '#1877F2',
+            '&:hover': {
+              borderColor: '#1877F2',
+              bgcolor: 'rgba(24, 119, 242, 0.04)'
+            }
+          }}
+        >
+          <Icon name="Facebook" size={24} />
+        </IconButton>
+
+        <IconButton
+          onClick={() => handleSocialLogin('github')}
+          disabled={loading}
+          sx={{
+            flex: 1,
+            py: 1.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            color: '#333',
+            '&:hover': {
+              borderColor: '#333',
+              bgcolor: 'rgba(51, 51, 51, 0.04)'
+            }
+          }}
+        >
+          <Icon name="GitHub" size={24} />
+        </IconButton>
+      </Box>
+
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary" display="inline">
+          Don't have an account?{' '}
+        </Typography>
+        <Link
+          href="#"
+          underline="hover"
+          color="primary"
+          sx={{ fontWeight: 600, cursor: 'pointer' }}
+          onClick={(e) => {
+            e.preventDefault()
+            navigate('/register')
+          }}
+        >
+          Create account
+        </Link>
+      </Box>
+    </Box>
+  )
+}

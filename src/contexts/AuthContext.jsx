@@ -1,70 +1,98 @@
-// import React, { createContext, useState, useEffect } from 'react'
-// import { useLocalStorage } from '../hooks/useLocalStorage'
+import React, { createContext, useState } from 'react'
+import { 
+  auth, 
+  googleProvider, 
+  facebookProvider, 
+  githubProvider 
+} from '../config/firebase'
+import { signInWithPopup } from 'firebase/auth'
 
-// // ایجاد Context
-// const AuthContext = createContext()
+const AuthContext = createContext()
+export { AuthContext }
 
-// // export خود Context
-// export { AuthContext }
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(false)
 
-// export function AuthProvider({ children }) {
-//   const [user, setUser] = useLocalStorage('trackly_user', null)
-//   const [loading, setLoading] = useState(true)
+  const login = (email, password) => {
+    if (email === 'demo@trackly.com' && password === '123456') {
+      setUser({ email, name: 'Demo User' })
+      return { success: true }
+    }
+    return { success: false, error: 'Invalid email or password' }
+  }
 
-//   // کاربر پیشفرض برای تست
-//   const defaultUser = {
-//     id: '1',
-//     email: 'demo@trackly.com',
-//     fullName: 'کاربر آزمایشی',
-//     avatar: null,
-//     bio: '',
-//     birthday: '',
-//     location: '',
-//     job: '',
-//     gender: '',
-//     maritalStatus: '',
-//     phone: '',
-//     createdAt: new Date().toISOString()
-//   }
+  const loginWithGoogle = async () => {
+    setLoading(true)
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+      setUser({
+        email: user.email,
+        name: user.displayName,
+        avatar: user.photoURL
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    } finally {
+      setLoading(false)
+    }
+  }
 
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       if (!user) {
-//         setUser(defaultUser)
-//       }
-//       setLoading(false)
-//     }, 500)
-    
-//     return () => clearTimeout(timer)
-//   }, [])
+  const loginWithFacebook = async () => {
+    setLoading(true)
+    try {
+      const result = await signInWithPopup(auth, facebookProvider)
+      const user = result.user
+      setUser({
+        email: user.email,
+        name: user.displayName,
+        avatar: user.photoURL
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    } finally {
+      setLoading(false)
+    }
+  }
 
-//   const login = (email, password) => {
-//     if (email && password) {
-//       setUser({ ...defaultUser, email })
-//       return { success: true }
-//     }
-//     return { success: false, error: 'Invalid credentials' }
-//   }
+  const loginWithGithub = async () => {
+    setLoading(true)
+    try {
+      const result = await signInWithPopup(auth, githubProvider)
+      const user = result.user
+      setUser({
+        email: user.email,
+        name: user.displayName,
+        avatar: user.photoURL
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    } finally {
+      setLoading(false)
+    }
+  }
 
-//   const logout = () => {
-//     setUser(null)
-//   }
+  const logout = () => {
+    setUser(null)
+  }
 
-//   const updateUser = (userData) => {
-//     setUser(prev => ({ ...prev, ...userData }))
-//   }
+  const value = {
+    user,
+    loading,
+    login,
+    loginWithGoogle,
+    loginWithFacebook,
+    loginWithGithub,
+    logout
+  }
 
-//   const value = {
-//     user,
-//     login,
-//     logout,
-//     updateUser,
-//     loading
-//   }
-
-//   return (
-//     <AuthContext.Provider value={value}>
-//       {children}
-//     </AuthContext.Provider>
-//   )
-// }
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
