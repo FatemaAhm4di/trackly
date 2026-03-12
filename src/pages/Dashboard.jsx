@@ -50,13 +50,13 @@ export default function Dashboard() {
   }
 
   // ✅ استفاده مستقیم از userStats.streak
-  let streak = 0
-  try {
-    streak = userStats?.streak || 0
-  } catch (error) {
-    console.error('Error calculating streak:', error)
-    streak = userStats?.streak || 0
-  }
+ // جایگزین کن با این
+let streak = 0
+try {
+  streak = userStats?.streak || 0
+} catch (error) {
+  streak = 0
+}
 
   // ✅ نمایش لودینگ
   if (loading) {

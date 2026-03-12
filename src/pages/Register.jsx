@@ -53,39 +53,39 @@ export default function Register() {
     }, 1000)
   }
 
+  const inputStyle = {
+    mb: 3,
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      bgcolor: 'background.default',
+      transition: 'all .25s ease',
+      '&:hover': { transform: 'translateY(-1px)' },
+      '&.Mui-focused': {
+        boxShadow: '0 0 0 3px rgba(54,138,199,0.15)'
+      }
+    }
+  }
+
   return (
     <AuthLayout
       title="Create Account"
-      subtitle="Join us to start your journey"
+      subtitle="Join Trackly and start achieving your goals."
     >
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
           </Alert>
         )}
 
-        {/* نام کامل */}
         <TextField
           fullWidth
           name="fullName"
           placeholder="Full name"
           value={formData.fullName}
           onChange={handleChange}
-          sx={{
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              bgcolor: 'background.default',
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main',
-                borderWidth: 2
-              }
-            }
-          }}
+          sx={inputStyle}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -95,7 +95,6 @@ export default function Register() {
           }}
         />
 
-        {/* ایمیل */}
         <TextField
           fullWidth
           name="email"
@@ -103,20 +102,7 @@ export default function Register() {
           placeholder="Email address"
           value={formData.email}
           onChange={handleChange}
-          sx={{
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              bgcolor: 'background.default',
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main',
-                borderWidth: 2
-              }
-            }
-          }}
+          sx={inputStyle}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -126,7 +112,6 @@ export default function Register() {
           }}
         />
 
-        {/* پسورد */}
         <TextField
           fullWidth
           name="password"
@@ -134,20 +119,7 @@ export default function Register() {
           placeholder="Password"
           value={formData.password}
           onChange={handleChange}
-          sx={{
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              bgcolor: 'background.default',
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main',
-                borderWidth: 2
-              }
-            }
-          }}
+          sx={inputStyle}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -156,11 +128,7 @@ export default function Register() {
             ),
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowPassword(!showPassword)}
-                  edge="end"
-                  sx={{ color: 'primary.main' }}
-                >
+                <IconButton onClick={() => setShowPassword(!showPassword)}>
                   <Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
                 </IconButton>
               </InputAdornment>
@@ -168,7 +136,6 @@ export default function Register() {
           }}
         />
 
-        {/* تایید پسورد */}
         <TextField
           fullWidth
           name="confirmPassword"
@@ -176,20 +143,7 @@ export default function Register() {
           placeholder="Confirm password"
           value={formData.confirmPassword}
           onChange={handleChange}
-          sx={{
-            mb: 4,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              bgcolor: 'background.default',
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'primary.main',
-                borderWidth: 2
-              }
-            }
-          }}
+          sx={{ ...inputStyle, mb: 4 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -198,11 +152,7 @@ export default function Register() {
             ),
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  edge="end"
-                  sx={{ color: 'primary.main' }}
-                >
+                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <Icon name={showConfirmPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
                 </IconButton>
               </InputAdornment>
@@ -210,46 +160,37 @@ export default function Register() {
           }}
         />
 
-        {/* دکمه ثبت‌نام */}
         <Button
           type="submit"
           variant="contained"
-          color="primary"
           fullWidth
           size="large"
           disabled={loading}
           sx={{
             py: 1.8,
             borderRadius: 2,
-            fontSize: '1rem',
-            fontWeight: 600,
-            mb: 3,
-            boxShadow: '0 8px 16px rgba(54, 138, 199, 0.3)',
+            fontWeight: 700,
+            background: 'linear-gradient(135deg,#2c7ab1 0%,#368ac7 100%)',
+            boxShadow: '0 10px 20px rgba(54,138,199,0.35)',
+            transition: 'all .25s ease',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 12px 24px rgba(54, 138, 199, 0.4)'
-            },
-            transition: 'all 0.3s ease'
+              transform: 'translateY(-3px)',
+              boxShadow: '0 16px 28px rgba(54,138,199,0.45)'
+            }
           }}
         >
           {loading ? 'Creating account...' : 'Create Account'}
         </Button>
 
-        {/* لینک ورود */}
-        <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ textAlign: 'center', mt: 3 }}>
           <Typography variant="body2" color="text.secondary" display="inline">
             Already have an account?{' '}
           </Typography>
+
           <Link
             href="#"
             underline="hover"
-            sx={{ 
-              color: 'primary.main', 
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'color 0.2s ease',
-              '&:hover': { color: 'primary.dark' }
-            }}
+            sx={{ color: 'primary.main', fontWeight: 600 }}
             onClick={(e) => {
               e.preventDefault()
               navigate('/login')
@@ -258,6 +199,7 @@ export default function Register() {
             Sign in
           </Link>
         </Box>
+
       </Box>
     </AuthLayout>
   )

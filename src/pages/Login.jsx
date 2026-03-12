@@ -9,7 +9,6 @@ export default function Login() {
   const { user } = useAuth()
 
   useEffect(() => {
-    // اگه کاربر قبلاً لاگین کرده، بره به داشبورد
     if (user) {
       navigate('/')
     }
@@ -18,7 +17,7 @@ export default function Login() {
   return (
     <AuthLayout
       title="Welcome Back"
-      subtitle="Sign in to continue your journey"
+      subtitle="Sign in to continue your journey and track your progress."
     >
       <LoginForm />
     </AuthLayout>

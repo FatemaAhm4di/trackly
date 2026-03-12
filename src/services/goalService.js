@@ -46,22 +46,21 @@ export function useGoalService() {
     ))
   }
 
-  // ✅ اصلاح شده: استفاده از newGoals به جای goals
   const deleteGoal = (id) => {
-    setGoals(prev => {
-      const newGoals = prev.filter(goal => goal.id !== id)
-      
-      // محاسبه streak جدید بعد از حذف
-      setTimeout(() => {
-        const newStreak = calculateOverallStreakWithGoals(newGoals)  // ✅ اینجا از newGoals استفاده کن
-        setUserStats(prevStats => ({
-          ...prevStats,
-          streak: newStreak
-        }))
-      }, 0)
-      
-      return newGoals
-    })
+    setGoals(prev => prev.filter(goal => goal.id !== id))
+  }
+
+  // ✅ تابع بازیابی هدف از آرشیو
+  const restoreGoal = (id) => {
+    setGoals(prev => prev.map(goal => 
+      goal.id === id 
+        ? { 
+            ...goal, 
+            status: 'active',
+            completedAt: null
+          }
+        : goal
+    ))
   }
 
   const getGoalById = (id) => {
@@ -72,98 +71,26 @@ export function useGoalService() {
   const hasLoggedToday = (goalId) => {
     const goal = getGoalById(goalId)
     if (!goal || !goal.logs) return false
-    
     const today = new Date().toISOString().split('T')[0]
     return goal.logs.some(log => log && log.date === today)
   }
 
-  const hasLoggedTodayOnly = (goalId) => {
-    const goal = getGoalById(goalId)
-    if (!goal || !goal.logs) return false
-    
+  // ✅ محاسبه استریک ساده و درست
+  const calculateStreak = () => {
     const today = new Date().toISOString().split('T')[0]
-    return goal.logs.some(log => log && log.date === today)
-  }
-
-  const calculateGoalStreak = (goalId) => {
-    const goal = getGoalById(goalId)
-    if (!goal || !goal.logs || goal.logs.length === 0) return 0
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
     
-    const sortedLogs = [...goal.logs]
-      .filter(log => log && log.date)
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
+    if (!userStats.lastActivityDate) return 0
     
-    if (sortedLogs.length === 0) return 0
-    
-    let streak = 1
-    let currentDate = new Date(sortedLogs[0].date)
-    currentDate.setHours(0, 0, 0, 0)
-    
-    for (let i = 1; i < sortedLogs.length; i++) {
-      const logDate = new Date(sortedLogs[i].date)
-      logDate.setHours(0, 0, 0, 0)
-      
-      const diffDays = Math.floor((currentDate - logDate) / (1000 * 60 * 60 * 24))
-      
-      if (diffDays === 1) {
-        streak++
-        currentDate = logDate
-      } else if (diffDays > 1) {
-        break
-      }
+    if (userStats.lastActivityDate === today) {
+      return userStats.streak
     }
     
-    const lastLogDate = new Date(sortedLogs[0].date)
-    lastLogDate.setHours(0, 0, 0, 0)
-    
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-    
-    if (lastLogDate < yesterday) {
-      return 0
+    if (userStats.lastActivityDate === yesterday) {
+      return userStats.streak
     }
     
-    return streak
-  }
-
-  const calculateOverallStreakWithGoals = (goalsList) => {
-    try {
-      if (!goalsList || goalsList.length === 0) {
-        return userStats?.streak || 0
-      }
-      
-      const today = new Date().toISOString().split('T')[0]
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-      
-      const hasActivityToday = goalsList.some(goal => 
-        goal.logs && goal.logs.some(log => log && log.date === today)
-      )
-      
-      const hasActivityYesterday = goalsList.some(goal => 
-        goal.logs && goal.logs.some(log => log && log.date === yesterday)
-      )
-      
-      const currentStreak = userStats?.streak || 0
-      
-      if (hasActivityToday) {
-        if (hasActivityYesterday) {
-          return currentStreak + 1
-        }
-        return 1
-      }
-      
-      if (hasActivityYesterday) {
-        return currentStreak
-      }
-      
-      return 0
-    } catch (error) {
-      console.error('Error calculating streak:', error)
-      return userStats?.streak || 0
-    }
+    return 0
   }
 
   const addProgress = (goalId, amount = 1) => {
@@ -175,7 +102,7 @@ export function useGoalService() {
         return { success: false, error: 'GOAL_NOT_ACTIVE', message: 'Goal is not active' }
       }
       
-      if (hasLoggedTodayOnly(goalId)) {
+      if (hasLoggedToday(goalId)) {
         return { 
           success: false, 
           error: 'DAILY_LIMIT',
@@ -184,6 +111,7 @@ export function useGoalService() {
       }
 
       const today = new Date().toISOString().split('T')[0]
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
       const now = new Date().toISOString()
       
       const newLogs = [...(goal.logs || [])]
@@ -219,8 +147,13 @@ export function useGoalService() {
         completedAt: updatedGoal.completedAt
       })
       
-      const newGoalsList = goals.map(g => g.id === goalId ? updatedGoal : g)
-      const newStreak = calculateOverallStreakWithGoals(newGoalsList)
+      // ✅ محاسبه استریک جدید
+      let newStreak = 1
+      if (userStats.lastActivityDate === yesterday) {
+        newStreak = (userStats.streak || 0) + 1
+      } else if (userStats.lastActivityDate === today) {
+        newStreak = userStats.streak || 1
+      }
       
       setUserStats(prev => ({
         xpTotal: (prev?.xpTotal || 0) + xpGained,
@@ -269,14 +202,10 @@ export function useGoalService() {
         completedAt: new Date().toISOString()
       })
       
-      const newGoalsList = goals.map(g => g.id === goalId ? {...g, status: 'completed'} : g)
-      const newStreak = calculateOverallStreakWithGoals(newGoalsList)
-      
       setUserStats(prev => ({
-        xpTotal: (prev?.xpTotal || 0) + 50,
-        streak: newStreak,
+        ...prev,
         completedCount: (prev?.completedCount || 0) + 1,
-        lastActivityDate: prev?.lastActivityDate
+        xpTotal: (prev?.xpTotal || 0) + 50
       }))
     } catch (error) {
       console.error('Error marking complete:', error)
@@ -344,7 +273,6 @@ export function useGoalService() {
       return 0
     }
   }
-  
 
   const resetStreak = () => {
     setUserStats(prev => ({
@@ -361,19 +289,18 @@ export function useGoalService() {
     createGoal,
     updateGoal,
     deleteGoal,
+    restoreGoal,
     getGoalById,
     addProgress,
     togglePause,
     markComplete,
-    calculateGoalStreak, 
-    calculateStreak: calculateGoalStreak, 
     getGoalsByStatus,
     getGoalsByCategory,
     searchGoals,
     sortGoals,
     getOverallProgress,
     hasLoggedToday,
-    hasLoggedInLast24Hours: hasLoggedTodayOnly,
+    calculateStreak,
     resetStreak,
     CATEGORIES,
     GOAL_TYPES

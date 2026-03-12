@@ -9,12 +9,8 @@ import Typography from '../ui/Typography'
 export default function LoginForm() {
   const navigate = useNavigate()
   const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, loading } = useAuth()
-  
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
-  
+
+  const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [localLoading, setLocalLoading] = useState(false)
@@ -25,7 +21,7 @@ export default function LoginForm() {
     if (error) setError('')
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     setLocalLoading(true)
     setError('')
@@ -37,37 +33,42 @@ export default function LoginForm() {
     }
 
     const result = login(formData.email, formData.password)
+
     if (result.success) {
       navigate('/')
     } else {
       setError(result.error)
     }
+
     setLocalLoading(false)
   }
 
   const handleSocialLogin = async (provider) => {
     let result
-    switch(provider) {
-      case 'google':
-        result = await loginWithGoogle()
-        break
-      case 'facebook':
-        result = await loginWithFacebook()
-        break
-      case 'github':
-        result = await loginWithGithub()
-        break
-    }
-    
-    if (result?.success) {
-      navigate('/')
-    } else {
-      setError(result?.error || 'Login failed')
+
+    if (provider === 'google') result = await loginWithGoogle()
+    if (provider === 'facebook') result = await loginWithFacebook()
+    if (provider === 'github') result = await loginWithGithub()
+
+    if (result?.success) navigate('/')
+    else setError(result?.error || 'Login failed')
+  }
+
+  const inputStyle = {
+    mb: 3,
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      transition: 'all .25s ease',
+      '&:hover': { transform: 'translateY(-1px)' },
+      '&.Mui-focused': {
+        boxShadow: '0 0 0 3px rgba(54,138,199,0.15)'
+      }
     }
   }
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <TextField
@@ -77,7 +78,7 @@ export default function LoginForm() {
         placeholder="Email address"
         value={formData.email}
         onChange={handleChange}
-        sx={{ mb: 3 }}
+        sx={inputStyle}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -94,7 +95,7 @@ export default function LoginForm() {
         placeholder="Password"
         value={formData.password}
         onChange={handleChange}
-        sx={{ mb: 2 }}
+        sx={{ ...inputStyle, mb: 2 }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -103,7 +104,7 @@ export default function LoginForm() {
           ),
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+              <IconButton onClick={() => setShowPassword(!showPassword)}>
                 <Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
               </IconButton>
             </InputAdornment>
@@ -120,89 +121,54 @@ export default function LoginForm() {
       <Button
         type="submit"
         variant="contained"
-        color="primary"
         fullWidth
         size="large"
         disabled={localLoading || loading}
-        sx={{ py: 1.8, borderRadius: 2, mb: 3 }}
+        sx={{
+          py: 1.8,
+          borderRadius: 2,
+          fontWeight: 700,
+          background: 'linear-gradient(135deg,#2c7ab1 0%,#368ac7 100%)',
+          boxShadow: '0 10px 20px rgba(54,138,199,0.35)',
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: '0 16px 28px rgba(54,138,199,0.45)'
+          }
+        }}
       >
         {localLoading ? 'Signing in...' : 'Sign In'}
       </Button>
 
-      <Divider sx={{ mb: 3 }}>
+      <Divider sx={{ my: 3 }}>
         <Typography variant="body2" color="text.secondary">
           Or continue with
         </Typography>
       </Divider>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <IconButton
-          onClick={() => handleSocialLogin('google')}
-          disabled={loading}
-          sx={{
-            flex: 1,
-            py: 1.5,
-            borderRadius: 2,
-            border: '1px solid',
-            borderColor: 'divider',
-            color: '#DB4437',
-            '&:hover': {
-              borderColor: '#DB4437',
-              bgcolor: 'rgba(219, 68, 55, 0.04)'
-            }
-          }}
-        >
+      <Box sx={{ display: 'flex', gap: 2 }}>
+        <IconButton onClick={() => handleSocialLogin('google')} sx={{ flex: 1 }}>
           <Icon name="Google" size={24} />
         </IconButton>
 
-        <IconButton
-          onClick={() => handleSocialLogin('facebook')}
-          disabled={loading}
-          sx={{
-            flex: 1,
-            py: 1.5,
-            borderRadius: 2,
-            border: '1px solid',
-            borderColor: 'divider',
-            color: '#1877F2',
-            '&:hover': {
-              borderColor: '#1877F2',
-              bgcolor: 'rgba(24, 119, 242, 0.04)'
-            }
-          }}
-        >
+        <IconButton onClick={() => handleSocialLogin('facebook')} sx={{ flex: 1 }}>
           <Icon name="Facebook" size={24} />
         </IconButton>
 
-        <IconButton
-          onClick={() => handleSocialLogin('github')}
-          disabled={loading}
-          sx={{
-            flex: 1,
-            py: 1.5,
-            borderRadius: 2,
-            border: '1px solid',
-            borderColor: 'divider',
-            color: '#333',
-            '&:hover': {
-              borderColor: '#333',
-              bgcolor: 'rgba(51, 51, 51, 0.04)'
-            }
-          }}
-        >
+        <IconButton onClick={() => handleSocialLogin('github')} sx={{ flex: 1 }}>
           <Icon name="GitHub" size={24} />
         </IconButton>
       </Box>
 
-      <Box sx={{ textAlign: 'center' }}>
+      <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Typography variant="body2" color="text.secondary" display="inline">
           Don't have an account?{' '}
         </Typography>
+
         <Link
           href="#"
           underline="hover"
           color="primary"
-          sx={{ fontWeight: 600, cursor: 'pointer' }}
+          sx={{ fontWeight: 600 }}
           onClick={(e) => {
             e.preventDefault()
             navigate('/register')
@@ -211,6 +177,7 @@ export default function LoginForm() {
           Create account
         </Link>
       </Box>
+
     </Box>
   )
 }
