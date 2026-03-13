@@ -28,7 +28,7 @@ export default function AuthLayout({ children, title, subtitle }) {
           minHeight: { xs: 'auto', sm: 580, md: 620 },
           borderRadius: { xs: 3, sm: 4 },
           overflow: 'hidden',
-          boxShadow: '0 30px 80px rgba(20, 20, 20, 0.35)',
+          boxShadow: '0 30px 80px rgba(5, 5, 5, 0.35)',
           border: '1px solid rgba(255,255,255,.05)',
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' }
