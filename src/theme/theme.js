@@ -21,7 +21,7 @@ export const createAppTheme = (mode, direction = 'ltr') => createTheme({
       default: mode === 'light' ? '#f0f2f5' : '#121212',
       paper: mode === 'light' ? '#ffffff' : '#1e1e1e'
     },
-    success: { main: '#4caf50', light: '#81c784', dark: '#388e3c' },
+    success: { main: '#4caf50', light: '#79c67d', dark: '#388e3c' },
     warning: { main: '#ff9800', light: '#ffb74d', dark: '#f57c00' },
     error: { main: '#f44336', light: '#e57373', dark: '#d32f2f' },
     text: {
