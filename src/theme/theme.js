@@ -23,7 +23,7 @@ export const createAppTheme = (mode, direction = 'ltr') => createTheme({
     },
     success: { main: '#4caf50', light: '#79c67d', dark: '#388e3c' },
     warning: { main: '#ff9800', light: '#ffb74d', dark: '#f57c00' },
-    error: { main: '#f44336', light: '#e57373', dark: '#d32f2f' },
+    error: { main: '#f44336', light: '#e57373', dark: '#cf2828' },
     text: {
       primary: mode === 'light' ? '#1a1a1a' : '#ffffff',
       secondary: mode === 'light' ? '#666666' : '#b0b0b0'
