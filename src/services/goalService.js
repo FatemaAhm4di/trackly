@@ -12,8 +12,11 @@ export function useGoalService() {
     lastActivityDate: null
   })
 
+  const getToday = () => new Date().toISOString().split('T')[0]
+  const getYesterday = () => new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
   const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2)
+    return Date.now().toString(36) + Math.random().toString(36).substring(2)
   }
 
   const createGoal = (goalData) => {
@@ -33,34 +36,33 @@ export function useGoalService() {
       createdAt: goalData.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    
+
     setGoals(prev => [newGoal, ...prev])
     return newGoal
   }
 
   const updateGoal = (id, updates) => {
-    setGoals(prev => prev.map(goal => 
-      goal.id === id 
-        ? { ...goal, ...updates, updatedAt: new Date().toISOString() }
-        : goal
-    ))
+    setGoals(prev =>
+      prev.map(goal =>
+        goal.id === id
+          ? { ...goal, ...updates, updatedAt: new Date().toISOString() }
+          : goal
+      )
+    )
   }
 
   const deleteGoal = (id) => {
     setGoals(prev => prev.filter(goal => goal.id !== id))
   }
 
-  // ✅ تابع بازیابی هدف از آرشیو
   const restoreGoal = (id) => {
-    setGoals(prev => prev.map(goal => 
-      goal.id === id 
-        ? { 
-            ...goal, 
-            status: 'active',
-            completedAt: null
-          }
-        : goal
-    ))
+    setGoals(prev =>
+      prev.map(goal =>
+        goal.id === id
+          ? { ...goal, status: 'active', completedAt: null }
+          : goal
+      )
+    )
   }
 
   const getGoalById = (id) => {
@@ -71,207 +73,150 @@ export function useGoalService() {
   const hasLoggedToday = (goalId) => {
     const goal = getGoalById(goalId)
     if (!goal || !goal.logs) return false
-    const today = new Date().toISOString().split('T')[0]
-    return goal.logs.some(log => log && log.date === today)
+    const today = getToday()
+    return goal.logs.some(log => log.date === today)
   }
 
-  // ✅ محاسبه استریک ساده و درست
-  const calculateStreak = () => {
-    const today = new Date().toISOString().split('T')[0]
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-    
-    if (!userStats.lastActivityDate) return 0
-    
-    if (userStats.lastActivityDate === today) {
-      return userStats.streak
-    }
-    
+  const calculateNewStreak = () => {
+    const today = getToday()
+    const yesterday = getYesterday()
+
+    if (!userStats.lastActivityDate) return 1
+
     if (userStats.lastActivityDate === yesterday) {
-      return userStats.streak
+      return (userStats.streak || 0) + 1
     }
-    
-    return 0
+
+    if (userStats.lastActivityDate === today) {
+      return userStats.streak || 1
+    }
+
+    return 1
   }
 
   const addProgress = (goalId, amount = 1) => {
     try {
       const goal = getGoalById(goalId)
-      if (!goal) return { success: false, error: 'GOAL_NOT_FOUND', message: 'Goal not found' }
-      
-      if (goal.status !== 'active') {
-        return { success: false, error: 'GOAL_NOT_ACTIVE', message: 'Goal is not active' }
-      }
-      
-      if (hasLoggedToday(goalId)) {
-        return { 
-          success: false, 
-          error: 'DAILY_LIMIT',
-          message: 'errors.dailyLimit'
-        }
+
+      if (!goal) {
+        return { success: false, error: 'GOAL_NOT_FOUND' }
       }
 
-      const today = new Date().toISOString().split('T')[0]
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-      const now = new Date().toISOString()
-      
-      const newLogs = [...(goal.logs || [])]
-      newLogs.push({ 
-        date: today, 
-        timestamp: now,
-        amount: amount || 1
-      })
-      
-      const newProgress = Math.min((goal.progress || 0) + (amount || 1), goal.target || 1)
-      
-      let updatedGoal = {
-        ...goal,
-        progress: newProgress,
-        logs: newLogs,
-        updatedAt: now
+      if (goal.status !== 'active') {
+        return { success: false, error: 'GOAL_NOT_ACTIVE' }
       }
-      
+
+      if (hasLoggedToday(goalId)) {
+        return { success: false, error: 'DAILY_LIMIT' }
+      }
+
+      const today = getToday()
+      const now = new Date().toISOString()
+
+      const newLogs = [...(goal.logs || [])]
+
+      newLogs.push({
+        date: today,
+        timestamp: now,
+        amount
+      })
+
+      const newProgress = Math.min(
+        (goal.progress || 0) + amount,
+        goal.target || 1
+      )
+
       let xpGained = 20
       let completedCountIncrease = 0
-      
+      let status = goal.status
+      let completedAt = goal.completedAt
+
       if (newProgress >= goal.target) {
-        updatedGoal.status = 'completed'
-        updatedGoal.completedAt = now
+        status = 'completed'
+        completedAt = now
         xpGained = 50
         completedCountIncrease = 1
       }
-      
+
       updateGoal(goalId, {
         progress: newProgress,
         logs: newLogs,
-        status: updatedGoal.status,
-        completedAt: updatedGoal.completedAt
+        status,
+        completedAt
       })
-      
-      // ✅ محاسبه استریک جدید
-      let newStreak = 1
-      if (userStats.lastActivityDate === yesterday) {
-        newStreak = (userStats.streak || 0) + 1
-      } else if (userStats.lastActivityDate === today) {
-        newStreak = userStats.streak || 1
-      }
-      
+
+      const newStreak = calculateNewStreak()
+
       setUserStats(prev => ({
         xpTotal: (prev?.xpTotal || 0) + xpGained,
         streak: newStreak,
         completedCount: (prev?.completedCount || 0) + completedCountIncrease,
         lastActivityDate: today
       }))
-      
-      return { 
-        success: true, 
-        goal: updatedGoal,
-        xpGained: xpGained,
-        newStreak: newStreak,
-        message: 'Progress added successfully'
+
+      return {
+        success: true,
+        xpGained,
+        newStreak
       }
+
     } catch (error) {
-      console.error('Error in addProgress:', error)
-      return { 
-        success: false, 
-        error: 'UNKNOWN_ERROR', 
-        message: 'An error occurred while adding progress' 
-      }
+      console.error(error)
+      return { success: false }
     }
   }
 
   const togglePause = (goalId) => {
-    try {
-      const goal = getGoalById(goalId)
-      if (!goal) return
-      
-      const newStatus = goal.status === 'active' ? 'paused' : 'active'
-      updateGoal(goalId, { status: newStatus })
-    } catch (error) {
-      console.error('Error toggling pause:', error)
-    }
+    const goal = getGoalById(goalId)
+    if (!goal) return
+
+    const newStatus = goal.status === 'active' ? 'paused' : 'active'
+    updateGoal(goalId, { status: newStatus })
   }
 
   const markComplete = (goalId) => {
-    try {
-      const goal = getGoalById(goalId)
-      if (!goal) return
-      
-      updateGoal(goalId, {
-        progress: goal.target,
-        status: 'completed',
-        completedAt: new Date().toISOString()
-      })
-      
-      setUserStats(prev => ({
-        ...prev,
-        completedCount: (prev?.completedCount || 0) + 1,
-        xpTotal: (prev?.xpTotal || 0) + 50
-      }))
-    } catch (error) {
-      console.error('Error marking complete:', error)
-    }
+    const goal = getGoalById(goalId)
+    if (!goal) return
+
+    updateGoal(goalId, {
+      progress: goal.target,
+      status: 'completed',
+      completedAt: new Date().toISOString()
+    })
+
+    setUserStats(prev => ({
+      ...prev,
+      completedCount: (prev?.completedCount || 0) + 1,
+      xpTotal: (prev?.xpTotal || 0) + 50
+    }))
   }
 
   const getGoalsByStatus = (status) => {
-    if (!goals) return []
-    return goals.filter(goal => goal && goal.status === status)
+    return goals.filter(goal => goal.status === status)
   }
 
   const getGoalsByCategory = (category) => {
-    if (!goals) return []
-    return goals.filter(goal => goal && goal.category === category)
+    return goals.filter(goal => goal.category === category)
   }
 
   const searchGoals = (query) => {
-    if (!goals || !query) return goals || []
-    return goals.filter(goal => 
-      goal && goal.title && goal.title.toLowerCase().includes(query.toLowerCase())
+    if (!query) return goals
+
+    return goals.filter(goal =>
+      goal.title.toLowerCase().includes(query.toLowerCase())
     )
   }
 
-  const sortGoals = (goalsList, sortBy) => {
-    if (!goalsList || !Array.isArray(goalsList)) return []
-    
-    const sorted = [...goalsList]
-    switch (sortBy) {
-      case 'newest':
-        return sorted.sort((a, b) => {
-          if (!a || !b) return 0
-          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-        })
-      case 'progress':
-        return sorted.sort((a, b) => {
-          if (!a || !b) return 0
-          const aProgress = a.target ? (a.progress / a.target) : 0
-          const bProgress = b.target ? (b.progress / b.target) : 0
-          return bProgress - aProgress
-        })
-      case 'category':
-        return sorted.sort((a, b) => {
-          if (!a || !b) return 0
-          return (a.category || '').localeCompare(b.category || '')
-        })
-      default:
-        return sorted
-    }
-  }
-
   const getOverallProgress = () => {
-    try {
-      if (!goals || goals.length === 0) return 0
-      
-      const validGoals = goals.filter(g => g && g.target && g.target > 0)
-      if (validGoals.length === 0) return 0
-      
-      const totalProgress = validGoals.reduce((sum, goal) => {
-        return sum + ((goal.progress || 0) / goal.target * 100)
-      }, 0)
-      
-      return totalProgress / validGoals.length
-    } catch (error) {
-      console.error('Error calculating overall progress:', error)
-      return 0
-    }
+    if (!goals.length) return 0
+
+    const validGoals = goals.filter(g => g.target > 0)
+
+    const total = validGoals.reduce((sum, g) => {
+      return sum + ((g.progress || 0) / g.target * 100)
+    }, 0)
+
+    return total / validGoals.length
   }
 
   const resetStreak = () => {
@@ -284,8 +229,8 @@ export function useGoalService() {
   }
 
   return {
-    goals: goals || [],
-    userStats: userStats || { xpTotal: 0, streak: 0, completedCount: 0, lastActivityDate: null },
+    goals,
+    userStats,
     createGoal,
     updateGoal,
     deleteGoal,
@@ -297,10 +242,8 @@ export function useGoalService() {
     getGoalsByStatus,
     getGoalsByCategory,
     searchGoals,
-    sortGoals,
     getOverallProgress,
     hasLoggedToday,
-    calculateStreak,
     resetStreak,
     CATEGORIES,
     GOAL_TYPES

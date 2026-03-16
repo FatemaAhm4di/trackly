@@ -1,18 +1,47 @@
-import React, { createContext, useState } from 'react'
-import { 
-  auth, 
-  googleProvider, 
-  facebookProvider, 
-  githubProvider 
+import React, { createContext, useState, useEffect } from 'react'
+import {
+  auth,
+  googleProvider,
+  facebookProvider,
+  githubProvider
 } from '../config/firebase'
-import { signInWithPopup } from 'firebase/auth'
+
+import {
+  signInWithPopup,
+  onAuthStateChanged,
+  signOut
+} from 'firebase/auth'
 
 const AuthContext = createContext()
 export { AuthContext }
 
 export function AuthProvider({ children }) {
+
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // 🔹 این قسمت مشکل login دائم را حل می‌کند
+  useEffect(() => {
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+
+      if (firebaseUser) {
+        setUser({
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          avatar: firebaseUser.photoURL
+        })
+      } else {
+        setUser(null)
+      }
+
+      setLoading(false)
+
+    })
+
+    return () => unsubscribe()
+
+  }, [])
 
   const login = (email, password) => {
     if (email === 'demo@trackly.com' && password === '123456') {
@@ -25,16 +54,22 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     setLoading(true)
     try {
+
       const result = await signInWithPopup(auth, googleProvider)
-      const user = result.user
+      const firebaseUser = result.user
+
       setUser({
-        email: user.email,
-        name: user.displayName,
-        avatar: user.photoURL
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        avatar: firebaseUser.photoURL
       })
+
       return { success: true }
+
     } catch (error) {
+
       return { success: false, error: error.message }
+
     } finally {
       setLoading(false)
     }
@@ -43,16 +78,22 @@ export function AuthProvider({ children }) {
   const loginWithFacebook = async () => {
     setLoading(true)
     try {
+
       const result = await signInWithPopup(auth, facebookProvider)
-      const user = result.user
+      const firebaseUser = result.user
+
       setUser({
-        email: user.email,
-        name: user.displayName,
-        avatar: user.photoURL
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        avatar: firebaseUser.photoURL
       })
+
       return { success: true }
+
     } catch (error) {
+
       return { success: false, error: error.message }
+
     } finally {
       setLoading(false)
     }
@@ -61,22 +102,30 @@ export function AuthProvider({ children }) {
   const loginWithGithub = async () => {
     setLoading(true)
     try {
+
       const result = await signInWithPopup(auth, githubProvider)
-      const user = result.user
+      const firebaseUser = result.user
+
       setUser({
-        email: user.email,
-        name: user.displayName,
-        avatar: user.photoURL
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        avatar: firebaseUser.photoURL
       })
+
       return { success: true }
+
     } catch (error) {
+
       return { success: false, error: error.message }
+
     } finally {
       setLoading(false)
     }
   }
 
-  const logout = () => {
+  // 🔹 logout واقعی
+  const logout = async () => {
+    await signOut(auth)
     setUser(null)
   }
 
@@ -88,6 +137,11 @@ export function AuthProvider({ children }) {
     loginWithFacebook,
     loginWithGithub,
     logout
+  }
+
+  // 🔹 تا وقتی auth چک نشده چیزی رندر نکن
+  if (loading) {
+    return null
   }
 
   return (
