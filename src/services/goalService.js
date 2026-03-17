@@ -1,6 +1,12 @@
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
-const CATEGORIES = ['health', 'study', 'work', 'personal', 'fitness', 'finance', 'creative', 'social']
+// 🔥 هماهنگ با Categories.jsx
+const CATEGORIES = [
+  'education', 'creative', 'mental', 'career',
+  'health', 'fitness', 'finance', 'productivity',
+  'social', 'family', 'travel', 'spiritual'
+]
+
 const GOAL_TYPES = ['daily', 'count', 'time']
 
 export function useGoalService() {
@@ -23,7 +29,7 @@ export function useGoalService() {
     const newGoal = {
       id: goalData.id || generateId(),
       title: goalData.title,
-      category: goalData.category,
+      category: goalData.category?.toLowerCase().trim(), // 🔥 مهم
       type: goalData.type,
       target: Number(goalData.target),
       progress: goalData.progress || 0,
@@ -45,7 +51,14 @@ export function useGoalService() {
     setGoals(prev =>
       prev.map(goal =>
         goal.id === id
-          ? { ...goal, ...updates, updatedAt: new Date().toISOString() }
+          ? {
+              ...goal,
+              ...updates,
+              category: updates.category
+                ? updates.category.toLowerCase().trim()
+                : goal.category,
+              updatedAt: new Date().toISOString()
+            }
           : goal
       )
     )
@@ -97,10 +110,7 @@ export function useGoalService() {
   const addProgress = (goalId, amount = 1) => {
     try {
       const goal = getGoalById(goalId)
-
-      if (!goal) {
-        return { success: false, error: 'GOAL_NOT_FOUND' }
-      }
+      if (!goal) return { success: false }
 
       if (goal.status !== 'active') {
         return { success: false, error: 'GOAL_NOT_ACTIVE' }
@@ -113,23 +123,21 @@ export function useGoalService() {
       const today = getToday()
       const now = new Date().toISOString()
 
-      const newLogs = [...(goal.logs || [])]
-
-      newLogs.push({
+      const newLogs = [...(goal.logs || []), {
         date: today,
         timestamp: now,
         amount
-      })
+      }]
 
       const newProgress = Math.min(
         (goal.progress || 0) + amount,
         goal.target || 1
       )
 
-      let xpGained = 20
-      let completedCountIncrease = 0
       let status = goal.status
       let completedAt = goal.completedAt
+      let xpGained = 20
+      let completedCountIncrease = 0
 
       if (newProgress >= goal.target) {
         status = 'completed'
@@ -154,11 +162,7 @@ export function useGoalService() {
         lastActivityDate: today
       }))
 
-      return {
-        success: true,
-        xpGained,
-        newStreak
-      }
+      return { success: true }
 
     } catch (error) {
       console.error(error)
@@ -170,8 +174,9 @@ export function useGoalService() {
     const goal = getGoalById(goalId)
     if (!goal) return
 
-    const newStatus = goal.status === 'active' ? 'paused' : 'active'
-    updateGoal(goalId, { status: newStatus })
+    updateGoal(goalId, {
+      status: goal.status === 'active' ? 'paused' : 'active'
+    })
   }
 
   const markComplete = (goalId) => {
@@ -183,20 +188,20 @@ export function useGoalService() {
       status: 'completed',
       completedAt: new Date().toISOString()
     })
-
-    setUserStats(prev => ({
-      ...prev,
-      completedCount: (prev?.completedCount || 0) + 1,
-      xpTotal: (prev?.xpTotal || 0) + 50
-    }))
   }
 
   const getGoalsByStatus = (status) => {
     return goals.filter(goal => goal.status === status)
   }
 
+  // 🔥 اصلاح حیاتی
   const getGoalsByCategory = (category) => {
-    return goals.filter(goal => goal.category === category)
+    if (!category) return []
+
+    return goals.filter(goal =>
+      goal.category &&
+      goal.category.toLowerCase().trim() === category.toLowerCase().trim()
+    )
   }
 
   const searchGoals = (query) => {
@@ -221,9 +226,8 @@ export function useGoalService() {
 
   const resetStreak = () => {
     setUserStats(prev => ({
-      xpTotal: prev?.xpTotal || 0,
+      ...prev,
       streak: 0,
-      completedCount: prev?.completedCount || 0,
       lastActivityDate: null
     }))
   }

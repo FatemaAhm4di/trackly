@@ -83,35 +83,34 @@ export default function CreateGoal() {
   }
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    
-    if (!validate()) return
-    setIsSubmitting(true)  // ✅ شروع لودینگ
+  e.preventDefault()
+  
+  if (!validate()) return
+  setIsSubmitting(true)
 
-    try {
-      if (isEdit && existingGoal) {
-        updateGoal(id, {
-          title: formData.title,
-          category: formData.category,
-          type: formData.type,
-          target: Number(formData.target),
-          startDate: formData.startDate,
-          endDate: formData.endDate || null,
-          color: formData.color,
-          notes: formData.notes
-        })
-      } else {
-        createGoal(formData)
-      }
-
-      setTimeout(() => {
-        navigate('/goals')
-      }, 300)  // کمی تاخیر برای نمایش لودینگ
-    } catch (error) {
-      console.error('Error saving goal:', error)
-      setIsSubmitting(false)
+  try {
+    const preparedData = {
+      ...formData,
+      category: formData.category.toLowerCase().trim(), // 🔥 مهم
+      target: Number(formData.target),
+      endDate: formData.endDate || null,
     }
+
+    if (isEdit && existingGoal) {
+      updateGoal(id, preparedData)
+    } else {
+      createGoal(preparedData)
+    }
+
+    setTimeout(() => {
+      navigate('/goals')
+    }, 300)
+
+  } catch (error) {
+    console.error('Error saving goal:', error)
+    setIsSubmitting(false)
   }
+}
 
   const getTypeLabel = (type) => {
     switch (type) {

@@ -2,6 +2,8 @@ import { Box, Grid, Card, CardContent, alpha } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useLanguage } from "../hooks/useLanguage";
 import { useGoalService } from "../services/goalService";
+import { useNavigate } from "react-router-dom";
+
 import Typography from "../components/ui/Typography";
 import Icon from "../components/ui/Icon";
 import { PageLoading } from "../components/ui/Loading";
@@ -9,8 +11,10 @@ import { PageLoading } from "../components/ui/Loading";
 export default function Categories() {
   const { t } = useLanguage();
   const { getGoalsByCategory } = useGoalService();
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
-  
+
   const CATEGORIES = [
     { key: "education", icon: "School" },
     { key: "creative", icon: "Palette" },
@@ -27,39 +31,43 @@ export default function Categories() {
   ];
 
   useEffect(() => {
-    // شبیه‌سازی لودینگ
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-    
+    const timer = setTimeout(() => setLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
+  // 🔥 اصلاح مهم: case-insensitive + safe
   const getCategoryStats = (categoryKey) => {
-    const categoryGoals = getGoalsByCategory(categoryKey);
-    const active = categoryGoals.filter((g) => g.status === "active").length;
-    const completed = categoryGoals.filter((g) => g.status === "completed").length;
-    const total = categoryGoals.length;
+    const goals = getGoalsByCategory(categoryKey) || [];
+
+    const safeGoals = goals.filter(
+      (g) =>
+        g.category &&
+        g.category.toLowerCase() === categoryKey.toLowerCase()
+    );
+
+    const active = safeGoals.filter((g) => g.status === "active").length;
+    const completed = safeGoals.filter((g) => g.status === "completed").length;
+    const total = safeGoals.length;
 
     return { active, completed, total };
   };
 
-  if (loading) {
-    return <PageLoading />;
-  }
+  const getProgressColor = (progress) => {
+    if (progress > 70) return "success.main";
+    if (progress > 30) return "warning.main";
+    return "error.main";
+  };
+
+  if (loading) return <PageLoading />;
 
   return (
     <Box sx={{ py: 4 }}>
-      {/* عنوان وسط‌چین */}
+      {/* title */}
       <Box sx={{ mb: 6, textAlign: "center" }}>
-        <Typography
-          variant="h3"
-          fontWeight="800"
-          gutterBottom
-          sx={{ letterSpacing: "-1px" }}
-        >
+        <Typography variant="h3" fontWeight="800" gutterBottom>
           {t("categories.title")}
         </Typography>
+
         <Typography variant="body1" color="text.secondary">
           {t("categories.subtitle")}
         </Typography>
@@ -68,6 +76,7 @@ export default function Categories() {
       <Grid container spacing={2} justifyContent="center">
         {CATEGORIES.map((category) => {
           const stats = getCategoryStats(category.key);
+
           const progress =
             stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
 
@@ -84,6 +93,9 @@ export default function Categories() {
               key={category.key}
             >
               <Card
+                onClick={() =>
+                  navigate(`/goals?category=${category.key}`)
+                }
                 sx={{
                   height: "100%",
                   display: "flex",
@@ -95,17 +107,21 @@ export default function Categories() {
                   borderColor: "divider",
                   maxWidth: "350px",
                   mx: "auto",
+                  cursor: "pointer",
+
                   "&:hover": {
                     transform: "translateY(-8px)",
                     boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
                     borderColor: "primary.main",
+
                     "& .category-icon-box": {
                       bgcolor: "primary.main",
                       color: "white",
                       transform: "scale(1.1) rotate(5deg)",
                     },
                   },
-                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+
+                  transition: "all 0.3s ease",
                 }}
               >
                 <CardContent
@@ -117,6 +133,7 @@ export default function Categories() {
                     width: "100%",
                   }}
                 >
+                  {/* icon */}
                   <Box
                     className="category-icon-box"
                     sx={{
@@ -129,18 +146,18 @@ export default function Categories() {
                       alignItems: "center",
                       justifyContent: "center",
                       mb: 2.5,
-                      transition: "all 0.4s ease",
-                      boxShadow: "0 4px 12px rgba(9, 102, 168, 0.15)",
+                      transition: "all 0.3s ease",
                     }}
                   >
                     <Icon name={category.icon} size={32} />
                   </Box>
 
+                  {/* title */}
                   <Typography
                     variant="h6"
                     fontWeight="700"
                     gutterBottom
-                    sx={{ mb: 3, minHeight: "44px" }}
+                    sx={{ mb: 3 }}
                   >
                     {t(`categories_list.${category.key}`) !==
                     `categories_list.${category.key}`
@@ -149,101 +166,27 @@ export default function Categories() {
                         category.key.slice(1)}
                   </Typography>
 
-                  <Box sx={{ width: "100%", spaceY: 1.5 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        py: 1,
-                        px: 2,
-                        borderRadius: 2,
-                        bgcolor: "background.default",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        fontWeight="500"
-                      >
-                        {t("categories.activeGoals")}
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        fontWeight="700"
-                        color="text.primary"
-                      >
-                        {stats.active}
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        py: 1,
-                        px: 2,
-                        borderRadius: 2,
-                        bgcolor: "background.default",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        fontWeight="500"
-                      >
-                        {t("categories.completedGoals")}
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        fontWeight="700"
-                        color="success.main"
-                      >
-                        {stats.completed}
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        py: 1,
-                        px: 2,
-                        borderRadius: 2,
-                        bgcolor: "background.default",
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        fontWeight="500"
-                      >
-                        {t("categories.totalGoals")}
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        fontWeight="800"
-                        color="primary.main"
-                      >
-                        {stats.total}
-                      </Typography>
-                    </Box>
+                  {/* stats */}
+                  <Box sx={{ width: "100%" }}>
+                    <StatRow
+                      label={t("categories.activeGoals")}
+                      value={stats.active}
+                    />
+                    <StatRow
+                      label={t("categories.completedGoals")}
+                      value={stats.completed}
+                      color="success.main"
+                    />
+                    <StatRow
+                      label={t("categories.totalGoals")}
+                      value={stats.total}
+                      color="primary.main"
+                    />
                   </Box>
 
+                  {/* ❗ فقط وقتی goal داریم */}
                   {stats.total > 0 && (
-                    <Box
-                      sx={{
-                        width: "100%",
-                        mt: 3,
-                        pt: 2,
-                        borderTop: 1,
-                        borderColor: "divider",
-                      }}
-                    >
+                    <Box sx={{ width: "100%", mt: 3 }}>
                       <Box
                         sx={{
                           display: "flex",
@@ -251,11 +194,7 @@ export default function Categories() {
                           mb: 1,
                         }}
                       >
-                        <Typography
-                          variant="caption"
-                          fontWeight="600"
-                          color="text.secondary"
-                        >
+                        <Typography variant="caption">
                           {t("categories.progress")}
                         </Typography>
                         <Typography
@@ -266,6 +205,7 @@ export default function Categories() {
                           {Math.round(progress)}%
                         </Typography>
                       </Box>
+
                       <Box
                         sx={{
                           width: "100%",
@@ -279,9 +219,8 @@ export default function Categories() {
                           sx={{
                             height: "100%",
                             width: `${progress}%`,
-                            bgcolor: "success.main",
-                            transition: "width 1s ease-in-out",
-                            borderRadius: 3,
+                            bgcolor: getProgressColor(progress),
+                            transition: "width 0.6s ease",
                           }}
                         />
                       </Box>
@@ -293,6 +232,30 @@ export default function Categories() {
           );
         })}
       </Grid>
+    </Box>
+  );
+}
+
+function StatRow({ label, value, color = "text.primary" }) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        py: 1,
+        px: 2,
+        borderRadius: 2,
+        bgcolor: "background.default",
+        mb: 1,
+      }}
+    >
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+
+      <Typography variant="body1" fontWeight="700" color={color}>
+        {value}
+      </Typography>
     </Box>
   );
 }
