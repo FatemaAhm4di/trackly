@@ -15,10 +15,14 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",
+    "file-saver": "^2.0.5",
     "firebase": "^12.10.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.13.0"
+    "react-router-dom": "^7.13.0",
+    "recharts": "^3.8.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -135,7 +135,23 @@
     "morning": "Good Morning",
     "afternoon": "Good Afternoon",
     "evening": "Good Evening",
-    "localTime": "Local Time"
+    "localTime": "Local Time",
+    "exportGoals": "Export Goals",
+    "exportDescription": "Download your goals data in JSON, CSV, or PDF format",
+    "application": "Application",
+    "license": "License",
+    "englishSupport": "Full interface support",
+    "persianSupport": "پشتیبانی کامل از زبان فارسی",
+    "pashtoSupport": "د پښتو ژبې بشپړ ملاتړ",
+    "rtlSupport": "Automatic switching based on language",
+    "feature1": "Goal Management (CRUD operations)",
+    "feature2": "Progress Tracking with visual charts",
+    "feature3": "Streak System with daily tracking",
+    "feature4": "XP Points and Gamification",
+    "feature5": "Archive and Restore completed goals",
+    "feature6": "Export data (JSON, CSV, PDF)",
+    "feature7": "Dark/Light theme support",
+    "feature8": "Multi-language with RTL/LTR"
   },
   "common": {
     "loading": "Loading...",
@@ -159,7 +175,9 @@
     "minute": "minute",
     "hours": "hours",
     "hour": "hour",
-    "seconds": "seconds"
+    "seconds": "seconds",
+    "goal": "goal",
+    "goals": "goals"
   },
   "categories_list": {
     "health": "Health",
@@ -222,5 +240,40 @@
     "progress": "Progress",
     "empty": "No archived goals",
     "emptyHint": "Completed goals will appear here"
+  },
+  "days": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "charts": {
+    "monthlyProgress": "Monthly Progress",
+    "streakHistory": "Streak History (30 days)",
+    "categoryDistribution": "Goals by Category",
+    "created": "Created",
+    "completed": "Completed",
+    "active": "Active"
+  },
+  "common": {
+    "goal": "goal",
+    "goals": "goals"
   }
 }

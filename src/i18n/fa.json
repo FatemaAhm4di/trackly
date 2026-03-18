@@ -135,7 +135,23 @@
     "morning": "صبح بخیر",
     "afternoon": "عصر بخیر",
     "evening": "شب بخیر",
-    "localTime": "زمان محلی"
+    "localTime": "زمان محلی",
+    "exportGoals": "خروجی اهداف",
+    "exportDescription": "داده‌های اهداف خود را در فرمت‌های JSON، CSV یا PDF دانلود کنید",
+    "application": "برنامه",
+    "license": "مجوز",
+    "englishSupport": "پشتیبانی کامل از رابط کاربری",
+    "persianSupport": "پشتیبانی کامل از زبان فارسی",
+    "pashtoSupport": "د پښتو ژبې بشپړ ملاتړ",
+    "rtlSupport": "تغییر خودکار بر اساس زبان",
+    "feature1": "مدیریت اهداف (عملیات CRUD)",
+    "feature2": "پیگیری پیشرفت با نمودارهای بصری",
+    "feature3": "سیستم رکورد با پیگیری روزانه",
+    "feature4": "امتیاز تجربه و بازی‌سازی",
+    "feature5": "آرشیو و بازیابی اهداف تکمیل شده",
+    "feature6": "خروجی داده (JSON, CSV, PDF)",
+    "feature7": "پشتیبانی از تم تاریک/روشن",
+    "feature8": "چندزبانه با پشتیبانی RTL/LTR"
   },
   "common": {
     "loading": "در حال بارگذاری...",
@@ -159,7 +175,9 @@
     "minute": "دقیقه",
     "hours": "ساعت",
     "hour": "ساعت",
-    "seconds": "ثانیه"
+    "seconds": "ثانیه",
+    "goal": "هدف",
+    "goals": "هدف"
   },
   "categories_list": {
     "health": "سلامت",
@@ -222,5 +240,36 @@
     "progress": "پیشرفت",
     "empty": "هیچ هدف آرشیو شده‌ای وجود ندارد",
     "emptyHint": "اهداف تکمیل شده اینجا نمایش داده می‌شوند"
+  },
+  "days": {
+    "sunday": "یکشنبه",
+    "monday": "دوشنبه",
+    "tuesday": "سه‌شنبه",
+    "wednesday": "چهارشنبه",
+    "thursday": "پنج‌شنبه",
+    "friday": "جمعه",
+    "saturday": "شنبه"
+  },
+  "months": {
+    "january": "ژانویه",
+    "february": "فوریه",
+    "march": "مارس",
+    "april": "آوریل",
+    "may": "مه",
+    "june": "ژوئن",
+    "july": "ژوئیه",
+    "august": "اوت",
+    "september": "سپتامبر",
+    "october": "اکتبر",
+    "november": "نوامبر",
+    "december": "دسامبر"
+  },
+  "charts": {
+    "monthlyProgress": "پیشرفت ماهانه",
+    "streakHistory": "تاریخچه رکورد (۳۰ روز)",
+    "categoryDistribution": "اهداف بر اساس دسته‌بندی",
+    "created": "ایجاد شده",
+    "completed": "تکمیل شده",
+    "active": "فعال"
   }
 }

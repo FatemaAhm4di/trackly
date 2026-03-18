@@ -135,7 +135,23 @@
     "morning": "سهار مو پخیر",
     "afternoon": "ښه ورځ",
     "evening": "ماښام مو پخیر",
-    "localTime": "محلي وخت"
+    "localTime": "محلي وخت",
+    "exportGoals": "د هدفونو صادرول",
+    "exportDescription": "د خپلو هدفونو ډاټا په JSON، CSV یا PDF بڼو کې ډاونلوډ کړئ",
+    "application": "اپلیکیشن",
+    "license": "جواز",
+    "englishSupport": "د انٹرفیس بشپړ ملاتړ",
+    "persianSupport": "پشتیبانی کامل از زبان فارسی",
+    "pashtoSupport": "د پښتو ژبې بشپړ ملاتړ",
+    "rtlSupport": "د ژبې پر اساس اتومات بدلون",
+    "feature1": "د هدف مدیریت (CRUD عملیات)",
+    "feature2": "د پرمختګ تعقیب با نمودارهای بصری",
+    "feature3": "د پرله پسې ورځو سیستم",
+    "feature4": "تجربوي نمرې او لوبې جوړونه",
+    "feature5": "آرشیف او بیرته راګرځول",
+    "feature6": "د ډاټا صادرول (JSON, CSV, PDF)",
+    "feature7": "د تیاره/روښانه بڼې ملاتړ",
+    "feature8": "څو ژبی د RTL/LTR ملاتړ سره"
   },
   "common": {
     "loading": "بارول...",
@@ -159,7 +175,9 @@
     "minute": "دقیقه",
     "hours": "ساعتونه",
     "hour": "ساعت",
-    "seconds": "ثانیې"
+    "seconds": "ثانیې",
+    "goal": "هدف",
+    "goals": "هدفونه"
   },
   "categories_list": {
     "health": "روغتیا",
@@ -222,5 +240,36 @@
     "progress": "پرمختګ",
     "empty": "هیڅ آرشیف شوی هدف نشته",
     "emptyHint": "بشپړ شوي هدفونه دلته ښودل کیږي"
+  },
+  "days": {
+    "sunday": "یکشنبه",
+    "monday": "دوشنبه",
+    "tuesday": "سه‌شنبه",
+    "wednesday": "چهارشنبه",
+    "thursday": "پنج‌شنبه",
+    "friday": "جمعه",
+    "saturday": "شنبه"
+  },
+  "months": {
+    "january": "جنوري",
+    "february": "فبروري",
+    "march": "مارچ",
+    "april": "اپریل",
+    "may": "می",
+    "june": "جون",
+    "july": "جولای",
+    "august": "اګست",
+    "september": "سپتمبر",
+    "october": "اکتوبر",
+    "november": "نومبر",
+    "december": "دسمبر"
+  },
+  "charts": {
+    "monthlyProgress": "میاشتنی پرمختګ",
+    "streakHistory": "د پرله پسې ورځو تاریخچه (۳۰ ورځې)",
+    "categoryDistribution": "هدفونه د کټګورۍ له مخې",
+    "created": "جوړ شوی",
+    "completed": "بشپړ شوی",
+    "active": "فعال"
   }
 }

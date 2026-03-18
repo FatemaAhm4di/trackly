@@ -1,44 +1,67 @@
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+// ========== JSON Export ==========
 export const exportGoalsJSON = (goals) => {
-  const dataStr = JSON.stringify(goals, null, 2)
-  const blob = new Blob([dataStr], { type: "application/json" })
-  const url = URL.createObjectURL(blob)
+  const dataStr = JSON.stringify(goals, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  saveAs(blob, `goals-export-${new Date().toISOString().split('T')[0]}.json`);
+};
 
-  const link = document.createElement("a")
-  link.href = url
-  link.download = "trackly_goals.json"
-  link.click()
-
-  URL.revokeObjectURL(url)
-}
-
+// ========== CSV Export ==========
 export const exportGoalsCSV = (goals) => {
-  if (!goals.length) return
+  // آماده‌سازی داده‌ها برای CSV
+  const headers = ['Title', 'Category', 'Type', 'Target', 'Progress', 'Status', 'Created At'];
+  
+  const rows = goals.map(goal => [
+    goal.title,
+    goal.category,
+    goal.type,
+    goal.target,
+    goal.progress,
+    goal.status,
+    new Date(goal.createdAt).toLocaleDateString()
+  ]);
 
-  const headers = [
-    "id",
-    "title",
-    "category",
-    "type",
-    "target",
-    "progress",
-    "status",
-    "startDate",
-    "endDate"
-  ]
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
 
-  const rows = goals.map(goal =>
-    headers.map(field => goal[field] ?? "").join(",")
-  )
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  saveAs(blob, `goals-export-${new Date().toISOString().split('T')[0]}.csv`);
+};
 
-  const csv = [headers.join(","), ...rows].join("\n")
+// ========== PDF Export ==========
+export const exportGoalsPDF = (goals) => {
+  const doc = new jsPDF();
+  
+  // عنوان
+  doc.setFontSize(18);
+  doc.text('Goals Export', 14, 22);
+  
+  // تاریخ
+  doc.setFontSize(10);
+  doc.text(`Export Date: ${new Date().toLocaleDateString()}`, 14, 30);
+  
+  // جدول
+  const tableColumn = ['Title', 'Category', 'Progress', 'Status'];
+  const tableRows = goals.map(goal => [
+    goal.title,
+    goal.category,
+    `${goal.progress}/${goal.target}`,
+    goal.status
+  ]);
 
-  const blob = new Blob([csv], { type: "text/csv" })
-  const url = URL.createObjectURL(blob)
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 35,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [54, 138, 199] }
+  });
 
-  const link = document.createElement("a")
-  link.href = url
-  link.download = "trackly_goals.csv"
-  link.click()
-
-  URL.revokeObjectURL(url)
-}
+  // ذخیره فایل
+  doc.save(`goals-export-${new Date().toISOString().split('T')[0]}.pdf`);
+};

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Box, Grid, Card, CardContent, IconButton } from '@mui/material'
+import { Box, Grid, Card, CardContent, IconButton, alpha } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
 import { useGoalService } from '../services/goalService'
@@ -8,13 +8,19 @@ import Typography from '../components/ui/Typography'
 import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import Dialog from '../components/ui/Dialog'
-import { PageLoading } from '../components/ui/Loading'  // ✅ ایمپورت لودینگ
+import { PageLoading } from '../components/ui/Loading'  
+
+// نمودارها
+import MonthlyChart from '../components/charts/MonthlyChart';
+import StreakChart from '../components/charts/StreakChart';
+import CategoryChart from '../components/charts/CategoryChart';
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { t } = useLanguage()
   
   const { 
+    goals,
     userStats,
     addProgress,
     deleteGoal,
@@ -22,46 +28,39 @@ export default function Dashboard() {
     getGoalsByStatus
   } = useGoalService()
   
-  const [loading, setLoading] = useState(true)  // ✅ state لودینگ
+  const [loading, setLoading] = useState(true)
   const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
   const [errorMessage, setErrorMessage] = useState('')
   const [showError, setShowError] = useState(false)
 
-  // ✅ useEffect برای لودینگ
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 500)
-    
+    const timer = setTimeout(() => setLoading(false), 500)
     return () => clearTimeout(timer)
   }, [])
 
-  // Safe getters with error handling
+  // Get goals with error handling
   let activeGoals = []
   let completedGoals = []
   let overallProgress = 0
+  let displayedActiveGoals = []
   
   try {
     activeGoals = getGoalsByStatus('active') || []
     completedGoals = getGoalsByStatus('completed') || []
     overallProgress = getOverallProgress() || 0
+    displayedActiveGoals = activeGoals.slice(0, 6)
   } catch (error) {
     console.error('Error fetching goals:', error)
   }
 
-  // ✅ استفاده مستقیم از userStats.streak
- // جایگزین کن با این
-let streak = 0
-try {
-  streak = userStats?.streak || 0
-} catch (error) {
-  streak = 0
-}
-
-  // ✅ نمایش لودینگ
-  if (loading) {
-    return <PageLoading />
+  let streak = 0
+  try {
+    streak = userStats?.streak || 0
+  } catch (error) {
+    streak = 0
   }
+
+  if (loading) return <PageLoading />
 
   const handleProgress = (goalId) => {
     if (!goalId) return
@@ -82,27 +81,23 @@ try {
     if (deleteDialog.goalId) {
       try {
         deleteGoal(deleteDialog.goalId)
+        setDeleteDialog({ open: false, goalId: null })
       } catch (error) {
         console.error('Error deleting goal:', error)
       }
-      setDeleteDialog({ open: false, goalId: null })
     }
   }
 
-  const handleDeleteCancel = () => {
-    setDeleteDialog({ open: false, goalId: null })
-  }
+  const handleDeleteCancel = () => setDeleteDialog({ open: false, goalId: null })
 
   const handleGoalClick = (goalId) => {
     if (!goalId) return
     navigate(`/goals/${goalId}`)
   }
 
-  // Safe userStats with defaults
   const safeUserStats = {
     completedCount: userStats?.completedCount || 0,
-    xpTotal: userStats?.xpTotal || 0,
-    streak: userStats?.streak || 0
+    xpTotal: userStats?.xpTotal || 0
   }
 
   const statCards = [
@@ -138,6 +133,7 @@ try {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      {/* Error Snackbar */}
       {showError && (
         <Box sx={{ 
           position: 'fixed', 
@@ -145,17 +141,20 @@ try {
           right: 20, 
           left: 20, 
           zIndex: 9999,
-          backgroundColor: 'error.main',
+          bgcolor: 'error.main',
           color: 'white',
           p: 2,
           borderRadius: 2,
           boxShadow: 3,
-          textAlign: 'center'
+          textAlign: 'center',
+          maxWidth: 400,
+          mx: 'auto'
         }}>
           <Typography>{errorMessage}</Typography>
         </Box>
       )}
 
+      {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="700" gutterBottom>
           {t('dashboard.welcome') || 'Welcome'}!
@@ -165,6 +164,7 @@ try {
         </Typography>
       </Box>
 
+      {/* Stat Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {statCards.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -180,13 +180,7 @@ try {
             >
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box 
-                    sx={{ 
-                      p: 2, 
-                      borderRadius: 3,
-                      backgroundColor: stat.bgColor
-                    }}
-                  >
+                  <Box sx={{ p: 2, borderRadius: 3, bgcolor: stat.bgColor }}>
                     <Icon name={stat.icon} size={32} color={stat.color} />
                   </Box>
                   <Box>
@@ -204,19 +198,34 @@ try {
         ))}
       </Grid>
 
+      {/* Charts Section - با فاصله مناسب */}
+      <Grid container spacing={3} sx={{ mb: 5 }}>
+        {/* Monthly Chart - تمام عرض */}
+        <Grid item xs={12}>
+          <MonthlyChart goals={goals} />
+        </Grid>
+        
+        {/* Streak Chart و Category Chart - کنار هم */}
+        <Grid item xs={12} md={6}>
+          <StreakChart goals={goals} />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <CategoryChart goals={goals} />
+        </Grid>
+      </Grid>
+
+      {/* Quick Actions */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" fontWeight="600">
-            {t('dashboard.quickActions') || 'Quick Actions'}
-          </Typography>
-        </Box>
+        <Typography variant="h5" fontWeight="700" gutterBottom sx={{ mb: 2 }}>
+          {t('dashboard.quickActions') || 'Quick Actions'}
+        </Typography>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             color="primary"
             startIcon={<Icon name="Add" size={20} />}
             onClick={() => navigate('/goals/new')}
-            sx={{ px: 3 }}
+            sx={{ px: 3, py: 1.2 }}
           >
             {t('dashboard.newGoal') || 'New Goal'}
           </Button>
@@ -225,36 +234,41 @@ try {
             color="primary"
             startIcon={<Icon name="Flag" size={20} />}
             onClick={() => navigate('/goals')}
-            sx={{ px: 3 }}
+            sx={{ px: 3, py: 1.2 }}
           >
             {t('dashboard.viewAllGoals') || 'View All Goals'}
           </Button>
         </Box>
       </Box>
 
-      <Box sx={{ mb: 4 }}>
+      {/* Active Goals Section */}
+      <Box sx={{ mb: 5 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" fontWeight="600">
+          <Typography variant="h5" fontWeight="700">
             {t('dashboard.activeGoals') || 'Active Goals'}
           </Typography>
-          <IconButton onClick={() => navigate('/goals')} size="small">
-            <Icon name="ArrowForward" size={20} />
-          </IconButton>
+          <Button
+            variant="text"
+            endIcon={<Icon name="ArrowForward" size={18} />}
+            onClick={() => navigate('/goals')}
+          >
+            {t('common.viewAll') || 'View All'}
+          </Button>
         </Box>
         
-        {activeGoals.length > 0 ? (
+        {displayedActiveGoals.length > 0 ? (
           <Grid container spacing={3}>
-            {activeGoals.slice(0, 3).map((goal) => (
-              <Grid item xs={12} md={4} key={goal.id}>
+            {displayedActiveGoals.map((goal) => (
+              <Grid item xs={12} md={6} lg={4} key={goal.id}>
                 <Card 
                   sx={{
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'translateY(-4px)',
                       boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                    },
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                    height: '100%'
+                    }
                   }}
                   onClick={() => handleGoalClick(goal.id)}
                 >
@@ -267,12 +281,13 @@ try {
                       <Typography 
                         variant="caption" 
                         sx={{ 
-                          backgroundColor: 'primary.light',
-                          color: 'white',
+                          bgcolor: alpha(goal.color || '#1976d2', 0.1),
+                          color: goal.color || '#1976d2',
                           px: 1.5,
                           py: 0.5,
                           borderRadius: 2,
-                          display: 'inline-block'
+                          display: 'inline-block',
+                          fontWeight: 600
                         }}
                       >
                         {goal.category || 'other'}
@@ -297,9 +312,9 @@ try {
                           handleProgress(goal.id)
                         }}
                         sx={{ 
-                          backgroundColor: 'success.light',
-                          color: 'white',
-                          '&:hover': { backgroundColor: 'success.dark' }
+                          bgcolor: alpha('#4caf50', 0.1),
+                          color: 'success.main',
+                          '&:hover': { bgcolor: 'success.main', color: 'white' }
                         }}
                       >
                         <Icon name="Add" size={18} />
@@ -311,20 +326,18 @@ try {
             ))}
           </Grid>
         ) : (
-          <Card>
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <Icon name="Inbox" size={64} color="text.disabled" sx={{ mb: 2 }} />
+          <Card sx={{ py: 6, textAlign: 'center' }}>
+            <CardContent>
+              <Icon name="Inbox" size={64} color="disabled" sx={{ mb: 2, opacity: 0.5 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 {t('dashboard.noActiveGoals') || 'No active goals'}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mb: 2 }}>
-                {t('dashboard.createFirstGoal') || 'Create your first goal to get started'}
               </Typography>
               <Button
                 variant="contained"
                 color="primary"
                 startIcon={<Icon name="Add" size={20} />}
                 onClick={() => navigate('/goals/new')}
+                sx={{ mt: 1 }}
               >
                 {t('dashboard.newGoal') || 'New Goal'}
               </Button>
@@ -333,14 +346,19 @@ try {
         )}
       </Box>
 
-      <Box>
+      {/* Completed Goals Preview */}
+      <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" fontWeight="600">
+          <Typography variant="h5" fontWeight="700">
             {t('dashboard.completedGoalsPreview') || 'Recently Completed'}
           </Typography>
-          <IconButton onClick={() => navigate('/goals?filter=completed')} size="small">
-            <Icon name="ArrowForward" size={20} />
-          </IconButton>
+          <Button
+            variant="text"
+            endIcon={<Icon name="ArrowForward" size={18} />}
+            onClick={() => navigate('/goals?filter=completed')}
+          >
+            {t('common.viewAll') || 'View All'}
+          </Button>
         </Box>
         
         {completedGoals.length > 0 ? (
@@ -352,14 +370,13 @@ try {
                     borderLeft: '4px solid',
                     borderLeftColor: 'success.main',
                     opacity: 0.8,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
                     '&:hover': {
                       opacity: 1,
                       transform: 'translateY(-4px)',
                       boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                    },
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                    height: '100%'
+                    }
                   }}
                   onClick={() => handleGoalClick(goal.id)}
                 >
@@ -376,7 +393,7 @@ try {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon name="CheckCircle" size={20} color="success" />
                       <Typography variant="body2" color="success.main">
-                        {t('dashboard.complete') || 'Completed'}
+                        {t('dashboard.completed') || 'Completed'}
                       </Typography>
                     </Box>
                   </CardContent>
@@ -385,9 +402,9 @@ try {
             ))}
           </Grid>
         ) : (
-          <Card>
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <Icon name="Celebration" size={64} color="text.disabled" sx={{ mb: 2 }} />
+          <Card sx={{ py: 6, textAlign: 'center' }}>
+            <CardContent>
+              <Icon name="Celebration" size={64} color="disabled" sx={{ mb: 2, opacity: 0.5 }} />
               <Typography variant="h6" color="text.secondary">
                 {t('dashboard.noCompletedGoals') || 'No completed goals yet'}
               </Typography>
@@ -396,6 +413,7 @@ try {
         )}
       </Box>
 
+      {/* Delete Dialog */}
       <Dialog
         open={deleteDialog.open}
         onClose={handleDeleteCancel}
@@ -411,7 +429,7 @@ try {
           </>
         }
       >
-        <Typography variant="body1">
+        <Typography>
           {t('common.deleteConfirmation') || 'Are you sure you want to delete this goal? This action cannot be undone.'}
         </Typography>
       </Dialog>
