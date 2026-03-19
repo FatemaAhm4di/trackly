@@ -66,7 +66,7 @@ const getCategoryColor = (category) => {
     health: '#22c55e',
     fitness: '#eab308',
     education: '#3b82f6',
-    work: '#8b5cf6',
+    work: '#804df8',
     personal: '#ec4899',
     creative: '#f97316',
     finance: '#10b981',
