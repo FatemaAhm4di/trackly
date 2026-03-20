@@ -9,6 +9,7 @@ import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import Dialog from '../components/ui/Dialog'
 import { PageLoading } from '../components/ui/Loading'  
+import { prepareMonthlyData } from '../utils/chartUtils'
 
 // نمودارها
 import MonthlyChart from '../components/charts/MonthlyChart';
