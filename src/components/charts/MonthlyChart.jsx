@@ -74,7 +74,7 @@ export default function StreakChart({ goals }) {
                 dataKey="active"
                 stroke="#f97316"
                 name={t('charts.active')}
-                dot={{ r: 4, fill: '#f97316', strokeWidth: 2 }}
+                dot={{ r: 4, fill: '#f5771d', strokeWidth: 2 }}
                 strokeWidth={2}
               />
 
