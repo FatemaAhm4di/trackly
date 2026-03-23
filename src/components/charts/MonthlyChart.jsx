@@ -1,15 +1,15 @@
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import {
-  LineChart, Line, XAxis, YAxis,
-  CartesianGrid, Tooltip,
+  BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend,
   ResponsiveContainer
 } from 'recharts';
 import { useLanguage } from '../../hooks/useLanguage';
-import { prepareStreakData } from '../../utils/chartUtils';
+import { prepareMonthlyData } from '../../utils/chartUtils';
 
-export default function StreakChart({ goals }) {
+export default function MonthlyChart({ goals }) {
   const { t, direction } = useLanguage();
-  const data = prepareStreakData(goals);
+  const data = prepareMonthlyData(goals);
 
   const isRTL = direction === 'rtl';
 
@@ -20,39 +20,36 @@ export default function StreakChart({ goals }) {
   return (
     <Card sx={{ height: '100%', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
       <CardContent sx={{ p: 3 }}>
-
+        
         <Typography
           variant="h6"
           fontWeight="600"
           gutterBottom
           sx={{ mb: 3, textAlign: isRTL ? 'right' : 'left' }}
         >
-          {t('charts.streakHistory')}
+          {t('charts.monthlyProgress')}
         </Typography>
 
-        <Box sx={{ width: '100%', height: 300 }}>
+        <Box sx={{ width: '100%', height: 320 }}>
           <ResponsiveContainer>
-            <LineChart data={data} margin={margin}>
+            <BarChart data={data} margin={margin}>
 
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
 
               <XAxis
-                dataKey="date"
+                dataKey="month"
                 reversed={isRTL}
                 interval="preserveStartEnd"
-                tick={{ fontSize: 10, fill: '#666' }}
+                tick={{ fontSize: 12, fill: '#666' }}
                 axisLine={{ stroke: '#e0e0e0' }}
                 tickLine={false}
               />
 
               <YAxis
                 orientation={isRTL ? 'right' : 'left'}
-                domain={[0, 1]}
-                ticks={[0, 1]}
-                tick={{ fontSize: 11, fill: '#666' }}
+                tick={{ fontSize: 12, fill: '#666' }}
                 axisLine={{ stroke: '#e0e0e0' }}
                 tickLine={false}
-                tickFormatter={(value) => value === 1 ? '✓' : '○'}
               />
 
               <Tooltip
@@ -61,24 +58,33 @@ export default function StreakChart({ goals }) {
                   direction: direction,
                   textAlign: isRTL ? 'right' : 'left'
                 }}
-                formatter={(value) => [
-                  value === 1
-                    ? (t('charts.active') || 'Active')
-                    : (t('charts.inactive') || 'Inactive'),
-                  t('charts.status') || 'Status'
-                ]}
               />
 
-              <Line
-                type="monotone"
-                dataKey="active"
-                stroke="#f97316"
-                name={t('charts.active')}
-                dot={{ r: 4, fill: '#f5771d', strokeWidth: 2 }}
-                strokeWidth={2}
+              <Legend
+                wrapperStyle={{
+                  paddingTop: 20,
+                  direction: direction
+                }}
+                iconType="circle"
               />
 
-            </LineChart>
+              <Bar
+                dataKey="created"
+                fill="#3b82f6"
+                name={t('charts.created')}
+                radius={[4, 4, 0, 0]}
+                barSize={28}
+              />
+
+              <Bar
+                dataKey="completed"
+                fill="#22c55e"
+                name={t('charts.completed')}
+                radius={[4, 4, 0, 0]}
+                barSize={28}
+              />
+
+            </BarChart>
           </ResponsiveContainer>
         </Box>
 
