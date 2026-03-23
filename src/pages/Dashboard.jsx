@@ -9,7 +9,6 @@ import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import Dialog from '../components/ui/Dialog'
 import { PageLoading } from '../components/ui/Loading'  
-import { prepareMonthlyData } from '../utils/chartUtils'
 
 // نمودارها
 import MonthlyChart from '../components/charts/MonthlyChart';
@@ -67,10 +66,11 @@ export default function Dashboard() {
     if (!goalId) return
     const result = addProgress(goalId)
     
-    if (result && !result.success) {
-      const errorMessage = result.message.startsWith('errors.') 
+    // فقط خطاهای غیر از محدودیت روزانه رو نمایش بده
+    if (result && !result.success && result.error !== 'DAILY_LIMIT') {
+      const errorMessage = result.message?.startsWith('errors.') 
         ? t(result.message)
-        : result.message
+        : result.message || 'An error occurred'
       
       setErrorMessage(errorMessage)
       setShowError(true)
@@ -199,14 +199,11 @@ export default function Dashboard() {
         ))}
       </Grid>
 
-      {/* Charts Section - با فاصله مناسب */}
+      {/* Charts Section */}
       <Grid container spacing={3} sx={{ mb: 5 }}>
-        {/* Monthly Chart - تمام عرض */}
         <Grid item xs={12}>
           <MonthlyChart goals={goals} />
         </Grid>
-        
-        {/* Streak Chart و Category Chart - کنار هم */}
         <Grid item xs={12} md={6}>
           <StreakChart goals={goals} />
         </Grid>

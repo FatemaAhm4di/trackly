@@ -24,7 +24,7 @@ export default function Goals() {
     sortGoals
   } = useGoalService()
   
-  const [loading, setLoading] = useState(true)  // ✅ state لودینگ اضافه شد
+  const [loading, setLoading] = useState(true)
   const initialFilter = searchParams.get('filter') || 'all'
   const [filter, setFilter] = useState(initialFilter)
   const [searchQuery, setSearchQuery] = useState('')
@@ -33,12 +33,10 @@ export default function Goals() {
   const [errorMessage, setErrorMessage] = useState('')
   const [showError, setShowError] = useState(false)
 
-  // ✅ useEffect برای لودینگ
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false)
-    }, 500) // نیم ثانیه لودینگ نشون بده
-    
+    }, 500)
     return () => clearTimeout(timer)
   }, [])
 
@@ -78,7 +76,6 @@ export default function Goals() {
     return result
   }, [goals, filter, searchQuery, sortBy, searchGoals, sortGoals])
 
-  // ✅ نمایش لودینگ
   if (loading) {
     return <PageLoading />
   }
@@ -99,10 +96,11 @@ export default function Goals() {
     if (!goalId) return
     const result = addProgress(goalId)
     
-    if (result && !result.success) {
-      const errorMessage = result.message.startsWith('errors.') 
+    // فقط خطاهای غیر از محدودیت روزانه رو نمایش بده
+    if (result && !result.success && result.error !== 'DAILY_LIMIT') {
+      const errorMessage = result.message?.startsWith('errors.') 
         ? t(result.message)
-        : result.message
+        : result.message || 'An error occurred'
       
       setErrorMessage(errorMessage)
       setShowError(true)

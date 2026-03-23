@@ -1,6 +1,6 @@
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
-// 🔥 هماهنگ با Categories.jsx
+// هماهنگ با Categories.jsx
 const CATEGORIES = [
   'education', 'creative', 'mental', 'career',
   'health', 'fitness', 'finance', 'productivity',
@@ -29,7 +29,7 @@ export function useGoalService() {
     const newGoal = {
       id: goalData.id || generateId(),
       title: goalData.title,
-      category: goalData.category?.toLowerCase().trim(), // 🔥 مهم
+      category: goalData.category?.toLowerCase().trim(),
       type: goalData.type,
       target: Number(goalData.target),
       progress: goalData.progress || 0,
@@ -83,13 +83,6 @@ export function useGoalService() {
     return goals.find(goal => goal.id === id) || null
   }
 
-  const hasLoggedToday = (goalId) => {
-    const goal = getGoalById(goalId)
-    if (!goal || !goal.logs) return false
-    const today = getToday()
-    return goal.logs.some(log => log.date === today)
-  }
-
   const calculateNewStreak = () => {
     const today = getToday()
     const yesterday = getYesterday()
@@ -107,6 +100,7 @@ export function useGoalService() {
     return 1
   }
 
+  // ✅ محدودیت روزانه حذف شد
   const addProgress = (goalId, amount = 1) => {
     try {
       const goal = getGoalById(goalId)
@@ -114,10 +108,6 @@ export function useGoalService() {
 
       if (goal.status !== 'active') {
         return { success: false, error: 'GOAL_NOT_ACTIVE' }
-      }
-
-      if (hasLoggedToday(goalId)) {
-        return { success: false, error: 'DAILY_LIMIT' }
       }
 
       const today = getToday()
@@ -194,7 +184,6 @@ export function useGoalService() {
     return goals.filter(goal => goal.status === status)
   }
 
-  // 🔥 اصلاح حیاتی
   const getGoalsByCategory = (category) => {
     if (!category) return []
 
@@ -247,7 +236,6 @@ export function useGoalService() {
     getGoalsByCategory,
     searchGoals,
     getOverallProgress,
-    hasLoggedToday,
     resetStreak,
     CATEGORIES,
     GOAL_TYPES
