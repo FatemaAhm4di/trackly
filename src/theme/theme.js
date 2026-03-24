@@ -18,7 +18,7 @@ export const createAppTheme = (mode, direction = 'ltr') => createTheme({
       contrastText: '#ffffff'
     },
     background: {
-      default: mode === 'light' ? '#f0f2f5' : '#050505',
+      default: mode === 'light' ? '#fcfcfc' : '#050505',
       paper: mode === 'light' ? '#ffffff' : '#1e1e1e'
     },
     success: { main: '#4caf50', light: '#79c67d', dark: '#388e3c' },
