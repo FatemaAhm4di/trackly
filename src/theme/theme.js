@@ -12,7 +12,7 @@ export const createAppTheme = (mode, direction = 'ltr') => createTheme({
       contrastText: '#ffffff'
     },
     secondary: {
-      main: '#0e5488',
+      main: '#0d4a79',
       light: '#368ac7',
       dark: '#073d66',
       contrastText: '#ffffff'
