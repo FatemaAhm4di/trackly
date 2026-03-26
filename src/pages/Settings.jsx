@@ -104,7 +104,15 @@ export default function Settings() {
     }
     setSaving(false)
   }
-
+if (!user) {
+  return (
+    <Box sx={{ py: 6, textAlign: 'center' }}>
+      <Typography variant="h6">
+        {t('settings.notLoggedIn') || 'You are not logged in'}
+      </Typography>
+    </Box>
+  )
+}
   return (
 
     <Box sx={{ py: 4 }}>
@@ -168,10 +176,10 @@ export default function Settings() {
                   ) : (
                     <>
                       <Typography variant="h5" fontWeight="700" gutterBottom>
-                        {user?.name || 'Fatema Ahmadi'}
+                        {user?.name || t('settings.noName') || 'No Name'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {user?.email || 'fatema.ahmadi1384@gmail.com'}
+                       {user?.email || t('settings.noEmail') || 'No Email'}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
                         <Chip 
