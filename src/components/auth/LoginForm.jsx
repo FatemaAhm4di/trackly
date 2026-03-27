@@ -21,37 +21,51 @@ export default function LoginForm() {
     if (error) setError('')
   }
 
-  const handleSubmit = (e) => {
+  // ✅ FIX اصلی اینجاست
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLocalLoading(true)
     setError('')
 
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields')
+    try {
+      if (!formData.email || !formData.password) {
+        setError('Please fill in all fields')
+        return
+      }
+
+      const result = await login(formData.email, formData.password)
+
+      if (result.success) {
+        navigate('/')
+      } else {
+        setError(result.error || 'Login failed')
+      }
+
+    } catch (err) {
+      setError('Something went wrong')
+    } finally {
       setLocalLoading(false)
-      return
     }
-
-    const result = login(formData.email, formData.password)
-
-    if (result.success) {
-      navigate('/')
-    } else {
-      setError(result.error)
-    }
-
-    setLocalLoading(false)
   }
 
   const handleSocialLogin = async (provider) => {
+    setError('')
     let result
 
-    if (provider === 'google') result = await loginWithGoogle()
-    if (provider === 'facebook') result = await loginWithFacebook()
-    if (provider === 'github') result = await loginWithGithub()
+    try {
+      if (provider === 'google') result = await loginWithGoogle()
+      if (provider === 'facebook') result = await loginWithFacebook()
+      if (provider === 'github') result = await loginWithGithub()
 
-    if (result?.success) navigate('/')
-    else setError(result?.error || 'Login failed')
+      if (result?.success) {
+        navigate('/')
+      } else {
+        setError(result?.error || 'Login failed')
+      }
+
+    } catch (err) {
+      setError('Social login failed')
+    }
   }
 
   const inputStyle = {
