@@ -1,5 +1,16 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider } from 'firebase/auth';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  FacebookAuthProvider, 
+  GithubAuthProvider 
+} from 'firebase/auth';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc 
+} from 'firebase/firestore';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -15,6 +26,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Providers
 const googleProvider = new GoogleAuthProvider();
@@ -28,4 +40,35 @@ facebookProvider.addScope('email');
 facebookProvider.addScope('public_profile');
 githubProvider.addScope('user:email');
 
-export { auth, googleProvider, facebookProvider, githubProvider };
+// ✅ توابع جدید برای Cloud Backup
+export const backupGoalsToCloud = async (userId, goals) => {
+  if (!userId) throw new Error('User not authenticated');
+  
+  const userDocRef = doc(db, 'users', userId);
+  const backupData = {
+    goals: goals,
+    lastBackup: new Date().toISOString(),
+    version: '1.0'
+  };
+  
+  await setDoc(userDocRef, { backup: backupData }, { merge: true });
+  return { success: true, timestamp: backupData.lastBackup };
+};
+
+export const restoreGoalsFromCloud = async (userId) => {
+  if (!userId) throw new Error('User not authenticated');
+  
+  const userDocRef = doc(db, 'users', userId);
+  const docSnap = await getDoc(userDocRef);
+  
+  if (docSnap.exists() && docSnap.data().backup) {
+    return {
+      success: true,
+      goals: docSnap.data().backup.goals,
+      timestamp: docSnap.data().backup.lastBackup
+    };
+  }
+  return { success: false, error: 'No backup found' };
+};
+
+export { auth, db, googleProvider, facebookProvider, githubProvider };
