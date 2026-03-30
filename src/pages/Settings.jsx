@@ -1,10 +1,11 @@
-import { Box, Grid, Card, CardContent, FormControl, InputLabel, Select, MenuItem, Chip, Divider, TextField, Avatar } from '@mui/material'
+import { Box, Grid, Card, CardContent, FormControl, InputLabel, Select, MenuItem, Chip, Divider, TextField, Avatar, Alert } from '@mui/material'
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../hooks/useLanguage'
 import { useThemeContext } from '../hooks/useThemeContext'
 import { useGoalService } from '../services/useGoalService'
 import { exportGoalsJSON, exportGoalsCSV, exportGoalsPDF } from '../utils/exportUtils'
 import { useAuth } from '../hooks/useAuth'
+import { backupGoalsToCloud, restoreGoalsFromCloud } from '../config/firebase'
 
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
@@ -15,7 +16,7 @@ export default function Settings() {
 
   const { t, language, changeLanguage, direction } = useLanguage()
   const { themeMode, toggleTheme } = useThemeContext()
-  const { goals } = useGoalService()
+  const { goals, createGoal, deleteGoal } = useGoalService()
   const { user, logout, updateUserProfile } = useAuth()
 
   const [loading, setLoading] = useState(true)
@@ -24,6 +25,10 @@ export default function Settings() {
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('')
   const [saving, setSaving] = useState(false)
+  
+  const [backupLoading, setBackupLoading] = useState(false)
+  const [restoreLoading, setRestoreLoading] = useState(false)
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -104,20 +109,95 @@ export default function Settings() {
     }
     setSaving(false)
   }
-if (!user) {
-  return (
-    <Box sx={{ py: 6, textAlign: 'center' }}>
-      <Typography variant="h6">
-        {t('settings.notLoggedIn') || 'You are not logged in'}
-      </Typography>
-    </Box>
-  )
-}
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type })
+    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
+  }
+
+  const handleBackup = async () => {
+    if (!user) {
+      showNotification(t('settings.loginRequired') || 'Please login to backup', 'error')
+      return
+    }
+    
+    setBackupLoading(true)
+    try {
+      const result = await backupGoalsToCloud(user.id, goals)
+      if (result.success) {
+        showNotification(t('settings.backupSuccess') || 'Goals backed up successfully!')
+      }
+    } catch (error) {
+      console.error('Backup error:', error)
+      showNotification(error.message, 'error')
+    } finally {
+      setBackupLoading(false)
+    }
+  }
+
+  const handleRestore = async () => {
+    if (!user) {
+      showNotification(t('settings.loginRequired') || 'Please login to restore', 'error')
+      return
+    }
+    
+    setRestoreLoading(true)
+    try {
+      const result = await restoreGoalsFromCloud(user.id)
+      if (result.success && result.goals && result.goals.length > 0) {
+        
+        if (goals && goals.length > 0 && deleteGoal) {
+          for (const goal of goals) {
+            try {
+              deleteGoal(goal.id)
+            } catch (err) {
+              console.error('Error deleting goal:', err)
+            }
+          }
+        }
+        
+        if (createGoal) {
+          for (const goal of result.goals) {
+            try {
+              createGoal(goal)
+            } catch (err) {
+              console.error('Error creating goal:', err)
+            }
+          }
+        }
+        
+        showNotification(t('settings.restoreSuccess') || `Restored ${result.goals.length} goals from backup!`)
+      } else {
+        showNotification(t('settings.noBackup') || 'No backup found', 'error')
+      }
+    } catch (error) {
+      console.error('Restore error:', error)
+      showNotification(error.message, 'error')
+    } finally {
+      setRestoreLoading(false)
+    }
+  }
+
   return (
 
     <Box sx={{ py: 4 }}>
 
-      {/* عنوان صفحه */}
+      {notification.show && (
+        <Alert 
+          severity={notification.type} 
+          sx={{ 
+            position: 'fixed', 
+            top: 20, 
+            right: 20, 
+            zIndex: 9999,
+            minWidth: 300,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}
+        >
+          {notification.message}
+        </Alert>
+      )}
+
       <Box sx={{ mb: 6, textAlign: "center" }}>
         <Typography variant="h3" fontWeight="800" gutterBottom>
           {t('settings.title')}
@@ -127,151 +207,89 @@ if (!user) {
         </Typography>
       </Box>
 
-      <Grid container spacing={3}>
+      {/* ===== ردیف 1: پروفایل کاربر ===== */}
+      <Card sx={{ mb: 3, borderRadius: 3 }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+            <Avatar 
+              src={avatar} 
+              sx={{ width: 80, height: 80, bgcolor: 'primary.main' }}
+            >
+              {!avatar && <Icon name="Person" size={40} color="white" />}
+            </Avatar>
+            
+            <Box sx={{ flex: 1 }}>
+              {editing ? (
+                <>
+                  <TextField
+                    fullWidth
+                    label={t('settings.fullName') || 'Full Name'}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    sx={{ mb: 2 }}
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    label={t('settings.avatarUrl') || 'Avatar URL'}
+                    value={avatar}
+                    onChange={(e) => setAvatar(e.target.value)}
+                    size="small"
+                  />
+                </>
+              ) : (
+                <>
+                  <Typography variant="h6" fontWeight="700">
+                    {user?.name || t('settings.noName') || 'No Name'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user?.email || t('settings.noEmail') || 'No Email'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    <Chip label={t('settings.memberSince') || 'Member 2026'} size="small" variant="outlined" />
+                    <Chip label={t('settings.lastActive') || 'Active today'} size="small" variant="outlined" />
+                  </Box>
+                </>
+              )}
+            </Box>
 
-        {/* ===== ردیف 1: پروفایل کاربر (تمام عرض) ===== */}
-        <Grid item xs={12}>
-          <Card sx={{ 
-            borderRadius: 3,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            '&:hover': {
-              boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
-              transition: 'all 0.3s ease'
-            }
-          }}>
-            <CardContent sx={{ p: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                <Avatar 
-                  src={avatar} 
-                  sx={{ 
-                    width: 96, 
-                    height: 96, 
-                    bgcolor: 'primary.main',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}
-                >
-                  {!avatar && <Icon name="Person" size={48} color="white" />}
-                </Avatar>
-                
-                <Box sx={{ flex: 1 }}>
-                  {editing ? (
-                    <>
-                      <TextField
-                        fullWidth
-                        label={t('settings.fullName') || 'Full Name'}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        sx={{ mb: 2 }}
-                        variant="outlined"
-                      />
-                      <TextField
-                        fullWidth
-                        label={t('settings.avatarUrl') || 'Avatar URL'}
-                        value={avatar}
-                        onChange={(e) => setAvatar(e.target.value)}
-                        placeholder="https://example.com/avatar.jpg"
-                        variant="outlined"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Typography variant="h5" fontWeight="700" gutterBottom>
-                        {user?.name || t('settings.noName') || 'No Name'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                       {user?.email || t('settings.noEmail') || 'No Email'}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-                        <Chip 
-                          label={t('settings.memberSince') || 'Member since 2026'} 
-                          size="small" 
-                          variant="outlined"
-                          icon={<Icon name="CalendarToday" size={14} />}
-                        />
-                        <Chip 
-                          label={t('settings.lastActive') || 'Active today'} 
-                          size="small" 
-                          variant="outlined"
-                          icon={<Icon name="Schedule" size={14} />}
-                        />
-                      </Box>
-                    </>
-                  )}
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  {editing ? (
-                    <>
-                      <Button
-                        variant="contained"
-                        onClick={handleSaveProfile}
-                        disabled={saving}
-                        startIcon={<Icon name="Save" size={18} />}
-                      >
-                        {saving ? (t('common.saving') || 'Saving...') : (t('common.save') || 'Save')}
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        onClick={() => setEditing(false)}
-                        startIcon={<Icon name="Close" size={18} />}
-                      >
-                        {t('common.cancel') || 'Cancel'}
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      onClick={() => setEditing(true)}
-                      startIcon={<Icon name="Edit" size={18} />}
-                      sx={{ px: 3, py: 1 }}
-                    >
-                      {t('settings.editProfile') || 'Edit Profile'}
-                    </Button>
-                  )}
-                  
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={logout}
-                    startIcon={<Icon name="Logout" size={18} />}
-                    sx={{ bgcolor: 'error.main', '&:hover': { bgcolor: 'error.dark' } }}
-                  >
-                    {t('settings.signOut') || 'Sign Out'}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {editing ? (
+                <>
+                  <Button size="small" variant="contained" onClick={handleSaveProfile} disabled={saving}>
+                    {saving ? (t('common.saving') || 'Saving...') : (t('common.save') || 'Save')}
                   </Button>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+                  <Button size="small" variant="outlined" onClick={() => setEditing(false)}>
+                    {t('common.cancel') || 'Cancel'}
+                  </Button>
+                </>
+              ) : (
+                <Button size="small" variant="outlined" onClick={() => setEditing(true)} startIcon={<Icon name="Edit" size={16} />}>
+                  {t('settings.editProfile') || 'Edit'}
+                </Button>
+              )}
+              <Button size="small" variant="contained" color="error" onClick={logout} startIcon={<Icon name="Logout" size={16} />}>
+                {t('settings.signOut') || 'Sign Out'}
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
 
-        {/* ===== ردیف 2: زبان + تم + ساعت + خروجی (چهار ستون) ===== */}
+      {/* ===== ردیف 2: زبان + تم + ساعت ===== */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
         
-        {/* زبان */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            height: '100%',
-            borderRadius: 3,
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ p: 1.5, bgcolor: 'primary.light', borderRadius: 2 }}>
-                  <Icon name="Language" size={24} color="primary" />
-                </Box>
-                <Typography variant="h6" fontWeight="600">
-                  {t('settings.language')}
-                </Typography>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Icon name="Language" size={20} color="primary" />
+                <Typography variant="subtitle1" fontWeight="600">{t('settings.language')}</Typography>
               </Box>
 
-              <FormControl fullWidth sx={{ mb: 3 }}>
+              <FormControl fullWidth size="small">
                 <InputLabel>{t('settings.selectLanguage')}</InputLabel>
-                <Select
-                  value={language}
-                  label={t('settings.selectLanguage')}
-                  onChange={(e) => changeLanguage(e.target.value)}
-                  sx={{ borderRadius: 2 }}
-                >
+                <Select value={language} label={t('settings.selectLanguage')} onChange={(e) => changeLanguage(e.target.value)}>
                   <MenuItem value="en">English</MenuItem>
                   <MenuItem value="fa">فارسی</MenuItem>
                   <MenuItem value="ps">پښتو</MenuItem>
@@ -279,37 +297,20 @@ if (!user) {
               </FormControl>
 
               <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('settings.direction')}
-                </Typography>
-                <Chip 
-                  label={direction === 'rtl' ? 'RTL' : 'LTR'} 
-                  size="small"
-                  color={direction === 'rtl' ? 'primary' : 'default'}
-                />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">{t('settings.direction')}</Typography>
+                <Chip label={direction === 'rtl' ? 'RTL' : 'LTR'} size="small" />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* تم */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            height: '100%',
-            borderRadius: 3,
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ p: 1.5, bgcolor: 'secondary.light', borderRadius: 2 }}>
-                  <Icon name="Palette" size={24} color="secondary" />
-                </Box>
-                <Typography variant="h6" fontWeight="600">
-                  {t('settings.theme')}
-                </Typography>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Icon name="Palette" size={20} color="secondary" />
+                <Typography variant="subtitle1" fontWeight="600">{t('settings.theme')}</Typography>
               </Box>
 
               <Box sx={{ display: 'flex', gap: 2 }}>
@@ -317,8 +318,8 @@ if (!user) {
                   variant={themeMode === 'light' ? 'contained' : 'outlined'}
                   onClick={toggleTheme}
                   fullWidth
-                  startIcon={<Icon name="LightMode" size={20} />}
-                  sx={{ py: 1.5, borderRadius: 2 }}
+                  startIcon={<Icon name="LightMode" size={16} />}
+                  size="small"
                 >
                   {t('settings.light')}
                 </Button>
@@ -326,213 +327,201 @@ if (!user) {
                   variant={themeMode === 'dark' ? 'contained' : 'outlined'}
                   onClick={toggleTheme}
                   fullWidth
-                  startIcon={<Icon name="DarkMode" size={20} />}
-                  sx={{ py: 1.5, borderRadius: 2 }}
+                  startIcon={<Icon name="DarkMode" size={16} />}
+                  size="small"
                 >
                   {t('settings.dark')}
                 </Button>
               </Box>
 
-              <Box sx={{ mt: 2, pt: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t('settings.currentMode')}: {themeMode === 'light' ? '☀️ Light' : '🌙 Dark'}
-                </Typography>
-              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                {t('settings.currentMode')}: {themeMode === 'light' ? '☀️ Light' : '🌙 Dark'}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* ساعت */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            height: '100%',
-            borderRadius: 3,
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ p: 1.5, bgcolor: 'primary.light', borderRadius: 2 }}>
-                  <Icon name="Schedule" size={24} color="primary" />
-                </Box>
-                <Typography variant="h6" fontWeight="600">
-                  {t('settings.localTime')}
-                </Typography>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Icon name="Schedule" size={20} color="primary" />
+                <Typography variant="subtitle1" fontWeight="600">{t('settings.localTime')}</Typography>
               </Box>
-              <Typography variant="h2" fontWeight="700" color="primary" sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}>
+              <Typography variant="h3" fontWeight="700" color="primary">
                 {hours}:{minutes}:{seconds}
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 {translatedDayName}, {translatedMonthName} {date}, {year}
-              </Typography>
-              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1 }}>
-                {Intl.DateTimeFormat().resolvedOptions().timeZone}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
+      </Grid>
 
-        {/* خروجی */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            height: '100%',
-            borderRadius: 3,
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ p: 1.5, bgcolor: 'success.light', borderRadius: 2 }}>
-                  <Icon name="Download" size={24} color="success" />
-                </Box>
-                <Typography variant="h6" fontWeight="600">
-                  {t('settings.exportGoals')}
-                </Typography>
+      {/* ===== ردیف 3: Cloud Backup + Export Goals ===== */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Icon name="CloudUpload" size={20} color="primary" />
+                <Typography variant="subtitle1" fontWeight="600">{t('settings.cloudBackup') || 'Cloud Backup'}</Typography>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t('settings.backupDescription') || 'Backup your goals to cloud or restore from backup'}
+              </Typography>
+
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button
+                  variant="contained"
+                  onClick={handleBackup}
+                  disabled={backupLoading}
+                  startIcon={<Icon name="Backup" size={16} />}
+                  fullWidth
+                  size="small"
+                >
+                  {backupLoading ? (t('common.backingUp') || 'Backing up...') : (t('settings.backup') || 'Backup')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleRestore}
+                  disabled={restoreLoading}
+                  startIcon={<Icon name="Restore" size={16} />}
+                  fullWidth
+                  size="small"
+                >
+                  {restoreLoading ? (t('common.restoring') || 'Restoring...') : (t('settings.restore') || 'Restore')}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Icon name="Download" size={20} color="success" />
+                <Typography variant="subtitle1" fontWeight="600">{t('settings.exportGoals')}</Typography>
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {t('settings.exportDescription')}
               </Typography>
 
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                <Button
-                  variant="contained"
-                  onClick={() => exportGoalsJSON(goals)}
-                  sx={{ flex: 1 }}
-                >
-                  JSON
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => exportGoalsCSV(goals)}
-                  sx={{ flex: 1 }}
-                >
-                  CSV
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => exportGoalsPDF(goals)}
-                  sx={{ flex: 1 }}
-                >
-                  PDF
-                </Button>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button variant="contained" onClick={() => exportGoalsJSON(goals)} size="small" sx={{ flex: 1 }}>JSON</Button>
+                <Button variant="outlined" onClick={() => exportGoalsCSV(goals)} size="small" sx={{ flex: 1 }}>CSV</Button>
+                <Button variant="outlined" onClick={() => exportGoalsPDF(goals)} size="small" sx={{ flex: 1 }}>PDF</Button>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-
-        {/* ===== ردیف 3: درباره برنامه ===== */}
-        <Grid item xs={12}>
-          <Card sx={{ 
-            borderRadius: 3,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            '&:hover': { boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }
-          }}>
-            <CardContent sx={{ p: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-                <Box sx={{ p: 1.5, bgcolor: 'info.light', borderRadius: 2 }}>
-                  <Icon name="Info" size={24} color="info" />
-                </Box>
-                <Typography variant="h6" fontWeight="600">
-                  {t('settings.aboutTitle')}
-                </Typography>
-              </Box>
-
-              <Typography variant="body1" color="text.secondary" paragraph>
-                {t('settings.description')}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 4 }}>
-                {t('settings.fullDescription')}
-              </Typography>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'primary.main' }}>
-                    {t('settings.application')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>{t('settings.version')}:</strong> 2.0.0
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>{t('settings.lastUpdate')}:</strong> {t('settings.march2026')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>{t('settings.developer')}:</strong> {t('settings.team')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>{t('settings.license')}:</strong> MIT
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'success.main' }}>
-                    {t('settings.languages')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>English:</strong> {t('settings.englishSupport')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>فارسی:</strong> {t('settings.persianSupport')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>پښتو:</strong> {t('settings.pashtoSupport')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    <strong>RTL/LTR:</strong> {t('settings.rtlSupport')}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'warning.main' }}>
-                    {t('settings.features')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature1')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature2')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature3')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature4')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature5')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature6')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature7')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ✓ {t('settings.feature8')}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'secondary.main' }}>
-                    {t('settings.techStack') || 'Tech Stack'}
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    <Chip icon={<Icon name="Code" size={16} />} label="React 18 + Vite" variant="outlined" size="small" />
-                    <Chip icon={<Icon name="Palette" size={16} />} label="Material UI v5" variant="outlined" size="small" />
-                    <Chip icon={<Icon name="BarChart" size={16} />} label="Recharts" variant="outlined" size="small" />
-                    <Chip icon={<Icon name="Security" size={16} />} label="Firebase Auth" variant="outlined" size="small" />
-                    <Chip icon={<Icon name="Storage" size={16} />} label="LocalStorage" variant="outlined" size="small" />
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-
       </Grid>
+
+      {/* ===== ردیف 4: درباره برنامه (کامل) ===== */}
+      <Card sx={{ borderRadius: 3 }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Icon name="Info" size={24} color="info" />
+            <Typography variant="h6" fontWeight="600">{t('settings.aboutTitle')}</Typography>
+          </Box>
+
+          <Typography variant="body1" color="text.secondary" paragraph>
+            {t('settings.description')}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 3 }}>
+            {t('settings.fullDescription')}
+          </Typography>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'primary.main' }}>
+                {t('settings.application')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>{t('settings.version')}:</strong> 2.0.0
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>{t('settings.lastUpdate')}:</strong> {t('settings.march2026')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>{t('settings.developer')}:</strong> {t('settings.team')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>{t('settings.license')}:</strong> MIT
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'success.main' }}>
+                {t('settings.languages')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>English:</strong> {t('settings.englishSupport')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>فارسی:</strong> {t('settings.persianSupport')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>پښتو:</strong> {t('settings.pashtoSupport')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <strong>RTL/LTR:</strong> {t('settings.rtlSupport')}
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'warning.main' }}>
+                {t('settings.features')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature1')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature2')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature3')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature4')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature5')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature6')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature7')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ✓ {t('settings.feature8')}
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ color: 'secondary.main' }}>
+                {t('settings.techStack') || 'Tech Stack'}
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                <Chip icon={<Icon name="Code" size={16} />} label="React 18 + Vite" variant="outlined" size="small" />
+                <Chip icon={<Icon name="Palette" size={16} />} label="Material UI v5" variant="outlined" size="small" />
+                <Chip icon={<Icon name="BarChart" size={16} />} label="Recharts" variant="outlined" size="small" />
+                <Chip icon={<Icon name="Security" size={16} />} label="Firebase Auth" variant="outlined" size="small" />
+                <Chip icon={<Icon name="Storage" size={16} />} label="LocalStorage" variant="outlined" size="small" />
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
     </Box>
   )

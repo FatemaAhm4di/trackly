@@ -27,7 +27,9 @@
     "createFirstGoal": "خپل لومړی هدف جوړ کړئ",
     "noCompletedGoals": "تر اوسه بشپړ شوی هدف نه لرئ",
     "days": "ورځ",
-    "complete": "بشپړ شو"
+    "complete": "بشپړ شو",
+    "progressChart": "د پرمختګ کتنه",
+    "completed": "بشپړ شو"
   },
   "goals": {
     "title": "زما هدفونه",
@@ -141,7 +143,7 @@
     "application": "اپلیکیشن",
     "license": "جواز",
     "englishSupport": "د انٹرفیس بشپړ ملاتړ",
-    "persianSupport": "پشتیبانی کامل از زبان فارسی",
+    "persianSupport": "د فارسي ژبې بشپړ ملاتړ",
     "pashtoSupport": "د پښتو ژبې بشپړ ملاتړ",
     "rtlSupport": "د ژبې پر اساس اتومات بدلون",
     "feature1": "د هدف مدیریت (CRUD عملیات)",
@@ -151,7 +153,30 @@
     "feature5": "آرشیف او بیرته راګرځول",
     "feature6": "د ډاټا صادرول (JSON, CSV, PDF)",
     "feature7": "د تیاره/روښانه بڼې ملاتړ",
-    "feature8": "څو ژبی د RTL/LTR ملاتړ سره"
+    "feature8": "څو ژبی د RTL/LTR ملاتړ سره",
+    "fullName": "بشپړ نوم",
+    "avatarUrl": "د انځور آدرس",
+    "noName": "بې نومه",
+    "noEmail": "بې برېښنالیک",
+    "editProfile": "پروفایل سمول",
+    "signOut": "وتل",
+    "memberSince": "غړی له ۲۰۲۶",
+    "lastActive": "نن فعال",
+    "account": "حساب",
+    "accountDescription": "د خپل حساب او امنیت تنظیمات اداره کړئ",
+    "cloudBackup": "کلاؤډ بیک اپ",
+    "backupDescription": "خپل هدفونه په کلاؤډ کې بیک اپ کړئ یا له بیک اپ څخه بیرته راګرځوئ",
+    "backup": "بیک اپ",
+    "restore": "بیرته راګرځول",
+    "backupSuccess": "هدفونه په بریالیتوب سره بیک اپ شول!",
+    "restoreSuccess": "{{count}} هدفونه له بیک اپ څخه بیرته راګرځول شول!",
+    "noBackup": "هیڅ بیک اپ ونه موندل شو",
+    "loginRequired": "مهرباني وکړئ د کلاؤډ بیک اپ کارولو لپاره ننوځئ",
+    "backingUp": "بیک اپ کیږي...",
+    "restoring": "بیرته راګرځول کیږي...",
+    "saving": "خوندي کیږي...",
+    "techStack": "ټیکنالوژي",
+    "timezone": "وخت سیمه"
   },
   "common": {
     "loading": "بارول...",
@@ -177,7 +202,11 @@
     "hour": "ساعت",
     "seconds": "ثانیې",
     "goal": "هدف",
-    "goals": "هدفونه"
+    "goals": "هدفونه",
+    "saving": "خوندي کیږي...",
+    "backingUp": "بیک اپ کیږي...",
+    "restoring": "بیرته راګرځول کیږي...",
+    "viewAll": "ټول وګورئ"
   },
   "categories_list": {
     "health": "روغتیا",
@@ -271,5 +300,10 @@
     "created": "جوړ شوی",
     "completed": "بشپړ شوی",
     "active": "فعال"
+  },
+  "languages": {
+    "english": "انګلیسي",
+    "persian": "فارسي",
+    "pashto": "پښتو"
   }
 }

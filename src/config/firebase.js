@@ -33,14 +33,16 @@ const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 const githubProvider = new GithubAuthProvider();
 
-// Optional: Add scopes
+// Scopes
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
 facebookProvider.addScope('email');
 facebookProvider.addScope('public_profile');
 githubProvider.addScope('user:email');
 
-// ✅ توابع جدید برای Cloud Backup
+// ========== توابع Cloud Backup ==========
+
+// 📤 پشتیبان‌گیری از اهداف
 export const backupGoalsToCloud = async (userId, goals) => {
   if (!userId) throw new Error('User not authenticated');
   
@@ -55,6 +57,7 @@ export const backupGoalsToCloud = async (userId, goals) => {
   return { success: true, timestamp: backupData.lastBackup };
 };
 
+// 📥 بازیابی اهداف از فضای ابری
 export const restoreGoalsFromCloud = async (userId) => {
   if (!userId) throw new Error('User not authenticated');
   

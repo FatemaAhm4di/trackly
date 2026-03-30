@@ -27,7 +27,9 @@
     "createFirstGoal": "برای شروع اولین هدف خود را ایجاد کنید",
     "noCompletedGoals": "هنوز هدف تکمیل شده‌ای ندارید",
     "days": "روز",
-    "complete": "تکمیل"
+    "complete": "تکمیل",
+    "progressChart": "نمای کلی پیشرفت",
+    "completed": "تکمیل شده"
   },
   "goals": {
     "title": "اهداف من",
@@ -142,7 +144,7 @@
     "license": "مجوز",
     "englishSupport": "پشتیبانی کامل از رابط کاربری",
     "persianSupport": "پشتیبانی کامل از زبان فارسی",
-    "pashtoSupport": "د پښتو ژبې بشپړ ملاتړ",
+    "pashtoSupport": "پشتیبانی کامل از زبان پشتو",
     "rtlSupport": "تغییر خودکار بر اساس زبان",
     "feature1": "مدیریت اهداف (عملیات CRUD)",
     "feature2": "پیگیری پیشرفت با نمودارهای بصری",
@@ -151,7 +153,30 @@
     "feature5": "آرشیو و بازیابی اهداف تکمیل شده",
     "feature6": "خروجی داده (JSON, CSV, PDF)",
     "feature7": "پشتیبانی از تم تاریک/روشن",
-    "feature8": "چندزبانه با پشتیبانی RTL/LTR"
+    "feature8": "چندزبانه با پشتیبانی RTL/LTR",
+    "fullName": "نام کامل",
+    "avatarUrl": "آدرس آواتار",
+    "noName": "بدون نام",
+    "noEmail": "بدون ایمیل",
+    "editProfile": "ویرایش پروفایل",
+    "signOut": "خروج",
+    "memberSince": "عضو از ۲۰۲۶",
+    "lastActive": "فعال امروز",
+    "account": "حساب کاربری",
+    "accountDescription": "مدیریت حساب کاربری و تنظیمات امنیتی",
+    "cloudBackup": "پشتیبان ابری",
+    "backupDescription": "پشتیبان‌گیری از اهداف در ابر یا بازیابی از پشتیبان",
+    "backup": "پشتیبان",
+    "restore": "بازیابی",
+    "backupSuccess": "اهداف با موفقیت پشتیبان‌گیری شدند!",
+    "restoreSuccess": "{{count}} هدف از پشتیبان بازیابی شد!",
+    "noBackup": "هیچ پشتیبانی یافت نشد",
+    "loginRequired": "لطفاً برای استفاده از پشتیبان ابری وارد شوید",
+    "backingUp": "در حال پشتیبان‌گیری...",
+    "restoring": "در حال بازیابی...",
+    "saving": "در حال ذخیره...",
+    "techStack": "فناوری‌ها",
+    "timezone": "منطقه زمانی"
   },
   "common": {
     "loading": "در حال بارگذاری...",
@@ -177,7 +202,11 @@
     "hour": "ساعت",
     "seconds": "ثانیه",
     "goal": "هدف",
-    "goals": "هدف"
+    "goals": "هدف",
+    "saving": "در حال ذخیره...",
+    "backingUp": "در حال پشتیبان‌گیری...",
+    "restoring": "در حال بازیابی...",
+    "viewAll": "مشاهده همه"
   },
   "categories_list": {
     "health": "سلامت",
@@ -271,5 +300,10 @@
     "created": "ایجاد شده",
     "completed": "تکمیل شده",
     "active": "فعال"
+  },
+  "languages": {
+    "english": "انگلیسی",
+    "persian": "فارسی",
+    "pashto": "پشتو"
   }
 }

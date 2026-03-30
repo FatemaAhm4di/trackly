@@ -27,7 +27,9 @@
     "createFirstGoal": "Create your first goal to get started",
     "noCompletedGoals": "No completed goals yet",
     "days": "day",
-    "complete": "Complete"
+    "complete": "Complete",
+    "progressChart": "Progress Overview",
+    "completed": "Completed"
   },
   "goals": {
     "title": "My Goals",
@@ -141,8 +143,8 @@
     "application": "Application",
     "license": "License",
     "englishSupport": "Full interface support",
-    "persianSupport": "پشتیبانی کامل از زبان فارسی",
-    "pashtoSupport": "د پښتو ژبې بشپړ ملاتړ",
+    "persianSupport": "Full Persian language support",
+    "pashtoSupport": "Full Pashto language support",
     "rtlSupport": "Automatic switching based on language",
     "feature1": "Goal Management (CRUD operations)",
     "feature2": "Progress Tracking with visual charts",
@@ -151,7 +153,30 @@
     "feature5": "Archive and Restore completed goals",
     "feature6": "Export data (JSON, CSV, PDF)",
     "feature7": "Dark/Light theme support",
-    "feature8": "Multi-language with RTL/LTR"
+    "feature8": "Multi-language with RTL/LTR",
+    "fullName": "Full Name",
+    "avatarUrl": "Avatar URL",
+    "noName": "No Name",
+    "noEmail": "No Email",
+    "editProfile": "Edit Profile",
+    "signOut": "Sign Out",
+    "memberSince": "Member since 2026",
+    "lastActive": "Active today",
+    "account": "Account",
+    "accountDescription": "Manage your account and security settings",
+    "cloudBackup": "Cloud Backup",
+    "backupDescription": "Backup your goals to cloud or restore from backup",
+    "backup": "Backup",
+    "restore": "Restore",
+    "backupSuccess": "Goals backed up successfully!",
+    "restoreSuccess": "Restored {{count}} goals from backup!",
+    "noBackup": "No backup found",
+    "loginRequired": "Please login to use cloud backup",
+    "backingUp": "Backing up...",
+    "restoring": "Restoring...",
+    "saving": "Saving...",
+    "techStack": "Tech Stack",
+    "timezone": "Timezone"
   },
   "common": {
     "loading": "Loading...",
@@ -177,7 +202,11 @@
     "hour": "hour",
     "seconds": "seconds",
     "goal": "goal",
-    "goals": "goals"
+    "goals": "goals",
+    "saving": "Saving...",
+    "backingUp": "Backing up...",
+    "restoring": "Restoring...",
+    "viewAll": "View All"
   },
   "categories_list": {
     "health": "Health",
@@ -272,8 +301,9 @@
     "completed": "Completed",
     "active": "Active"
   },
-  "common": {
-    "goal": "goal",
-    "goals": "goals"
+  "languages": {
+    "english": "English",
+    "persian": "Persian",
+    "pashto": "Pashto"
   }
 }

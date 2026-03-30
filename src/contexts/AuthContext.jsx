@@ -30,6 +30,7 @@ export function AuthProvider({ children }) {
 
       if (firebaseUser) {
         setUser({
+          id: firebaseUser.uid,  // ✅ اضافه شد - مهم برای Cloud Backup
           email: firebaseUser.email,
           name: firebaseUser.displayName || 'User',
           avatar: firebaseUser.photoURL || ''
@@ -57,6 +58,7 @@ export function AuthProvider({ children }) {
       const firebaseUser = result.user
 
       setUser({
+        id: firebaseUser.uid,  // ✅ اضافه شد
         email: firebaseUser.email,
         name: firebaseUser.displayName,
         avatar: firebaseUser.photoURL
@@ -86,6 +88,7 @@ export function AuthProvider({ children }) {
       })
 
       setUser({
+        id: result.user.uid,  // ✅ اضافه شد
         email: result.user.email,
         name: name,
         avatar: ''
@@ -111,6 +114,7 @@ export function AuthProvider({ children }) {
       const firebaseUser = result.user
 
       setUser({
+        id: firebaseUser.uid,  // ✅ اضافه شد
         email: firebaseUser.email,
         name: firebaseUser.displayName,
         avatar: firebaseUser.photoURL
@@ -136,6 +140,7 @@ export function AuthProvider({ children }) {
       const firebaseUser = result.user
 
       setUser({
+        id: firebaseUser.uid,  // ✅ اضافه شد
         email: firebaseUser.email,
         name: firebaseUser.displayName,
         avatar: firebaseUser.photoURL
@@ -161,6 +166,7 @@ export function AuthProvider({ children }) {
       const firebaseUser = result.user
 
       setUser({
+        id: firebaseUser.uid,  // ✅ اضافه شد
         email: firebaseUser.email,
         name: firebaseUser.displayName || firebaseUser.email,
         avatar: firebaseUser.photoURL
@@ -215,7 +221,7 @@ export function AuthProvider({ children }) {
     user,
     loading,
     login,
-    register, // ✅ مهم
+    register,
     loginWithGoogle,
     loginWithFacebook,
     loginWithGithub,
