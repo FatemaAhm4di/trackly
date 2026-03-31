@@ -124,7 +124,7 @@ export const getAllCategoryColors = () => {
     fitness: '#eab308',
     finance: '#10b981',
     productivity: '#6366f1',
-    social: '#ef4444',
+    social: '#ef5252',
     family: '#f59e0b',
     travel: '#06b6d4',
     spiritual: '#a855f7',
