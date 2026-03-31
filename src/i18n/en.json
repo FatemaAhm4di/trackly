@@ -9,7 +9,18 @@
     "categories": "Categories",
     "settings": "Settings",
     "newGoal": "New Goal",
-    "archive": "Archive"
+    "archive": "Archive",
+    "profile": "Profile",
+    "editProfile": "Edit Profile",
+    "logout": "Sign Out",
+    "search": "Search...",
+    "notifications": "Notifications",
+    "noNotifications": "No notifications",
+    "viewAll": "View all",
+    "language": "Language",
+    "theme": "Theme",
+    "guest": "Guest",
+    "signIn": "Sign in to your account"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -51,7 +62,11 @@
     "pause": "Pause",
     "resume": "Resume",
     "delete": "Delete",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "activeEmpty": "No active goals",
+    "completedEmpty": "No completed goals yet",
+    "pausedEmpty": "No paused goals",
+    "sort": "Sort"
   },
   "createGoal": {
     "title": "Create New Goal",
@@ -176,7 +191,18 @@
     "restoring": "Restoring...",
     "saving": "Saving...",
     "techStack": "Tech Stack",
-    "timezone": "Timezone"
+    "timezone": "Timezone",
+    "profile": "Profile Information",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "data": "Data & Storage",
+    "about": "About",
+    "export": "Export",
+    "clear": "Clear",
+    "search": "Search settings...",
+    "noResults": "No settings found for",
+    "signOutBtn": "Sign Out",
+    "signOutDesc": "You can sign in again anytime"
   },
   "common": {
     "loading": "Loading...",
@@ -206,7 +232,9 @@
     "saving": "Saving...",
     "backingUp": "Backing up...",
     "restoring": "Restoring...",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "deleteGoal": "Delete Goal",
+    "deleteConfirmation": "Are you sure you want to delete this goal? This action cannot be undone."
   },
   "categories_list": {
     "health": "Health",
@@ -235,7 +263,13 @@
     "progressAdded": "Progress added successfully",
     "goalCompleted": "Congratulations! Goal completed",
     "settingsSaved": "Settings saved successfully",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "welcome": "Welcome to Trackly! Start tracking your goals today.",
+    "streakMilestone": "Amazing! {{days}} day streak!",
+    "weeklyReport": "Weekly Report Ready",
+    "goalReminder": "Don't forget to make progress on \"{{title}}\" today!",
+    "goalProgress": "You're {{progress}}% there on \"{{title}}\"!",
+    "achievement": "Achievement Unlocked: {{achievement}}"
   },
   "errors": {
     "dailyLimit": "You can only add progress once per day",
@@ -299,11 +333,26 @@
     "categoryDistribution": "Goals by Category",
     "created": "Created",
     "completed": "Completed",
-    "active": "Active"
+    "active": "Active",
+    "noCategoryData": "No goals data available"
   },
   "languages": {
     "english": "English",
     "persian": "Persian",
     "pashto": "Pashto"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "View and manage your profile information",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "avatarUrl": "Avatar URL",
+    "edit": "Edit Profile",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "statistics": "Statistics",
+    "totalGoals": "Total Goals",
+    "completed": "Completed",
+    "streak": "Day Streak"
   }
 }
