@@ -1,6 +1,7 @@
-import { Box, TextField, InputAdornment, IconButton, Alert, Link } from '@mui/material'
-import { useState } from 'react'
+import { Box, TextField, InputAdornment, IconButton, Alert, Link, alpha } from '@mui/material'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '@mui/material'
 import { useAuth } from '../hooks/useAuth'
 import AuthLayout from '../components/auth/AuthLayout'
 import Button from '../components/ui/Button'
@@ -9,7 +10,8 @@ import Icon from '../components/ui/Icon'
 
 export default function Register() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const theme = useTheme()
+  const { register, user } = useAuth()
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -23,17 +25,25 @@ export default function Register() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // اگر قبلاً وارد شده بود به داشبورد بره
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard')
+    }
+  }, [user, navigate])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     if (error) setError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
+    // اعتبارسنجی
     if (!formData.fullName || !formData.email || !formData.password) {
       setError('Please fill in all fields')
       setLoading(false)
@@ -46,11 +56,40 @@ export default function Register() {
       return
     }
 
-    setTimeout(() => {
-      login(formData.email, formData.password)
-      navigate('/')
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
       setLoading(false)
-    }, 1000)
+      return
+    }
+
+    try {
+      const result = await register(formData.email, formData.password, formData.fullName)
+      
+      if (result?.success) {
+        navigate('/dashboard')
+      } else {
+        let errorMessage = result?.error || 'Registration failed'
+        
+        if (errorMessage.includes('email-already-in-use')) {
+          errorMessage = 'This email is already registered. Please login instead.'
+        } else if (errorMessage.includes('weak-password')) {
+          errorMessage = 'Password should be at least 6 characters.'
+        } else if (errorMessage.includes('invalid-email')) {
+          errorMessage = 'Please enter a valid email address.'
+        } else if (errorMessage.includes('network-request-failed')) {
+          errorMessage = 'Network error. Please check your internet connection.'
+        } else {
+          errorMessage = 'Registration failed. Please try again.'
+        }
+        
+        setError(errorMessage)
+      }
+    } catch (err) {
+      console.error('Registration error:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const inputStyle = {
@@ -116,7 +155,7 @@ export default function Register() {
           fullWidth
           name="password"
           type={showPassword ? 'text' : 'password'}
-          placeholder="Password"
+          placeholder="Password (min. 6 characters)"
           value={formData.password}
           onChange={handleChange}
           sx={inputStyle}
@@ -128,7 +167,7 @@ export default function Register() {
             ),
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)}>
+                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                   <Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
                 </IconButton>
               </InputAdornment>
@@ -152,7 +191,7 @@ export default function Register() {
             ),
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
                   <Icon name={showConfirmPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
                 </IconButton>
               </InputAdornment>
@@ -170,12 +209,13 @@ export default function Register() {
             py: 1.8,
             borderRadius: 2,
             fontWeight: 700,
-            background: 'linear-gradient(135deg,#2c7ab1 0%,#368ac7 100%)',
-            boxShadow: '0 10px 20px rgba(54,138,199,0.35)',
+            fontSize: '1rem',
+            background: 'linear-gradient(135deg, #2c7ab1 0%, #368ac7 100%)',
+            boxShadow: '0 10px 20px rgba(54, 138, 199, 0.35)',
             transition: 'all .25s ease',
             '&:hover': {
               transform: 'translateY(-3px)',
-              boxShadow: '0 16px 28px rgba(54,138,199,0.45)'
+              boxShadow: '0 16px 28px rgba(54, 138, 199, 0.45)'
             }
           }}
         >
@@ -190,7 +230,7 @@ export default function Register() {
           <Link
             href="#"
             underline="hover"
-            sx={{ color: 'primary.main', fontWeight: 600 }}
+            sx={{ color: 'primary.main', fontWeight: 600, cursor: 'pointer' }}
             onClick={(e) => {
               e.preventDefault()
               navigate('/login')

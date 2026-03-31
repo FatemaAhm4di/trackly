@@ -10,7 +10,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      navigate('/')
+      navigate('/dashboard')
     }
   }, [user, navigate])
 

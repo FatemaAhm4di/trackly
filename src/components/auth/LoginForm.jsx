@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, TextField, InputAdornment, IconButton, Alert, Link, Divider } from '@mui/material'
+import { Box, TextField, InputAdornment, IconButton, Alert, Link, Divider, alpha, useTheme } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import Button from '../ui/Button'
@@ -8,6 +8,7 @@ import Typography from '../ui/Typography'
 
 export default function LoginForm() {
   const navigate = useNavigate()
+  const theme = useTheme()
   const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, loading } = useAuth()
 
   const [formData, setFormData] = useState({ email: '', password: '' })
@@ -21,7 +22,6 @@ export default function LoginForm() {
     if (error) setError('')
   }
 
-  // ✅ FIX اصلی اینجاست
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLocalLoading(true)
@@ -30,19 +30,34 @@ export default function LoginForm() {
     try {
       if (!formData.email || !formData.password) {
         setError('Please fill in all fields')
+        setLocalLoading(false)
         return
       }
 
       const result = await login(formData.email, formData.password)
 
-      if (result.success) {
-        navigate('/')
+      if (result?.success) {
+        navigate('/dashboard')
       } else {
-        setError(result.error || 'Login failed')
+        let errorMessage = result?.error || 'Login failed'
+        
+        if (errorMessage.includes('user-not-found')) {
+          errorMessage = 'No account found with this email. Please sign up first.'
+        } else if (errorMessage.includes('wrong-password')) {
+          errorMessage = 'Incorrect password. Please try again.'
+        } else if (errorMessage.includes('invalid-email')) {
+          errorMessage = 'Please enter a valid email address.'
+        } else if (errorMessage.includes('too-many-requests')) {
+          errorMessage = 'Too many failed attempts. Please try again later.'
+        } else {
+          errorMessage = 'Login failed. Please try again.'
+        }
+        
+        setError(errorMessage)
       }
-
     } catch (err) {
-      setError('Something went wrong')
+      console.error('Login error:', err)
+      setError('Something went wrong. Please try again.')
     } finally {
       setLocalLoading(false)
     }
@@ -58,13 +73,13 @@ export default function LoginForm() {
       if (provider === 'github') result = await loginWithGithub()
 
       if (result?.success) {
-        navigate('/')
+        navigate('/dashboard')
       } else {
-        setError(result?.error || 'Login failed')
+        setError(result?.error || 'Social login failed')
       }
-
     } catch (err) {
-      setError('Social login failed')
+      console.error('Social login error:', err)
+      setError('Social login failed. Please try again.')
     }
   }
 
@@ -83,7 +98,11 @@ export default function LoginForm() {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <TextField
         fullWidth
@@ -96,7 +115,7 @@ export default function LoginForm() {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Icon name="Email" size={20} />
+              <Icon name="Email" size={20} color="primary.main" />
             </InputAdornment>
           )
         }}
@@ -113,12 +132,12 @@ export default function LoginForm() {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Icon name="Lock" size={20} />
+              <Icon name="Lock" size={20} color="primary.main" />
             </InputAdornment>
           ),
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={() => setShowPassword(!showPassword)}>
+              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                 <Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
               </IconButton>
             </InputAdornment>
@@ -127,7 +146,15 @@ export default function LoginForm() {
       />
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <Link href="#" underline="hover" color="text.secondary">
+        <Link 
+          href="#" 
+          underline="hover" 
+          color="text.secondary"
+          onClick={(e) => {
+            e.preventDefault()
+            // Handle forgot password
+          }}
+        >
           Forgot password?
         </Link>
       </Box>
@@ -142,11 +169,13 @@ export default function LoginForm() {
           py: 1.8,
           borderRadius: 2,
           fontWeight: 700,
-          background: 'linear-gradient(135deg,#2c7ab1 0%,#368ac7 100%)',
-          boxShadow: '0 10px 20px rgba(54,138,199,0.35)',
+          fontSize: '1rem',
+          background: 'linear-gradient(135deg, #2c7ab1 0%, #368ac7 100%)',
+          boxShadow: '0 10px 20px rgba(54, 138, 199, 0.35)',
+          transition: 'all .25s ease',
           '&:hover': {
             transform: 'translateY(-3px)',
-            boxShadow: '0 16px 28px rgba(54,138,199,0.45)'
+            boxShadow: '0 16px 28px rgba(54, 138, 199, 0.45)'
           }
         }}
       >
@@ -159,16 +188,55 @@ export default function LoginForm() {
         </Typography>
       </Divider>
 
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <IconButton onClick={() => handleSocialLogin('google')} sx={{ flex: 1 }}>
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+        <IconButton 
+          onClick={() => handleSocialLogin('google')} 
+          sx={{ 
+            flex: 1, 
+            border: 1, 
+            borderColor: 'divider',
+            borderRadius: 2,
+            py: 1,
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              borderColor: 'primary.main'
+            }
+          }}
+        >
           <Icon name="Google" size={24} />
         </IconButton>
 
-        <IconButton onClick={() => handleSocialLogin('facebook')} sx={{ flex: 1 }}>
+        <IconButton 
+          onClick={() => handleSocialLogin('facebook')} 
+          sx={{ 
+            flex: 1, 
+            border: 1, 
+            borderColor: 'divider',
+            borderRadius: 2,
+            py: 1,
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              borderColor: 'primary.main'
+            }
+          }}
+        >
           <Icon name="Facebook" size={24} />
         </IconButton>
 
-        <IconButton onClick={() => handleSocialLogin('github')} sx={{ flex: 1 }}>
+        <IconButton 
+          onClick={() => handleSocialLogin('github')} 
+          sx={{ 
+            flex: 1, 
+            border: 1, 
+            borderColor: 'divider',
+            borderRadius: 2,
+            py: 1,
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              borderColor: 'primary.main'
+            }
+          }}
+        >
           <Icon name="GitHub" size={24} />
         </IconButton>
       </Box>
@@ -182,7 +250,7 @@ export default function LoginForm() {
           href="#"
           underline="hover"
           color="primary"
-          sx={{ fontWeight: 600 }}
+          sx={{ fontWeight: 600, cursor: 'pointer' }}
           onClick={(e) => {
             e.preventDefault()
             navigate('/register')

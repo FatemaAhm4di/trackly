@@ -27,7 +27,6 @@ export const prepareMonthlyData = (goals, locale = 'en') => {
   return monthlyData;
 };
 
-
 // آماده‌سازی داده‌ها برای نمودار استریک
 export const prepareStreakData = (goals, locale = 'en') => {
   const last30Days = [];
@@ -37,15 +36,12 @@ export const prepareStreakData = (goals, locale = 'en') => {
     const date = new Date();
     date.setDate(today.getDate() - i);
 
-    // ✅ تاریخ لوکال واقعی (نه UTC خراب)
-    const localDateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+    const localDateStr = date.toLocaleDateString('en-CA');
 
-    // بررسی فعالیت
     const hasActivity = goals.some(goal =>
       goal.logs?.some(log => log.date === localDateStr)
     );
 
-    // ✅ فرمت نمایشی درست برای هر زبان
     const displayDate = new Intl.DateTimeFormat(locale, {
       month: '2-digit',
       day: '2-digit'
@@ -60,41 +56,78 @@ export const prepareStreakData = (goals, locale = 'en') => {
   return last30Days;
 };
 
-
-// آماده‌سازی داده‌ها برای نمودار دسته‌بندی
+// آماده‌سازی داده‌ها برای نمودار دسته‌بندی - با محاسبه پیشرفت واقعی
 export const prepareCategoryData = (goals) => {
+  if (!goals || goals.length === 0) return [];
+  
   const categories = {};
 
   goals.forEach(goal => {
     const cat = goal.category || 'other';
-
+    
     if (!categories[cat]) {
       categories[cat] = {
         name: cat,
-        value: 0,
-        color: getCategoryColor(cat)
+        totalProgress: 0,
+        count: 0,
+        value: 0
       };
     }
-
-    categories[cat].value += 1;
+    
+    // محاسبه پیشرفت هر هدف (درصد)
+    const progress = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
+    categories[cat].totalProgress += progress;
+    categories[cat].count += 1;
   });
-
-  return Object.values(categories);
+  
+  // تبدیل به آرایه با میانگین پیشرفت هر دسته
+  return Object.values(categories).map(cat => ({
+    name: cat.name,
+    value: Math.round(cat.totalProgress / cat.count), // میانگین پیشرفت
+    color: getCategoryColor(cat.name)
+  })).filter(cat => cat.value > 0); // فقط دسته‌هایی که پیشرفت دارن
 };
 
-
+// رنگ‌بندی کامل برای ۱۲ دسته‌بندی + other
 const getCategoryColor = (category) => {
   const colors = {
-    health: '#22c55e',
-    fitness: '#eab308',
-    education: '#3b82f6',
+    // 12 دسته اصلی
+    education: '#3b82f6',     // آبی
+    creative: '#f97316',      // نارنجی
+    mental: '#8b5cf6',        // بنفش روشن
+    career: '#ec489a',        // صورتی
+    health: '#22c55e',        // سبز
+    fitness: '#eab308',       // زرد
+    finance: '#10b981',       // سبز زمردی
+    productivity: '#6366f1',  // آبی بنفش
+    social: '#ef4444',        // قرمز
+    family: '#f59e0b',        // نارنجی طلایی
+    travel: '#06b6d4',        // فیروزه‌ای
+    spiritual: '#a855f7',     // بنفش
+    // fallback
     work: '#804df8',
     personal: '#ec4899',
-    creative: '#f97316',
-    finance: '#10b981',
-    social: '#6366f1',
-    other: '#64748b'
+    other: '#64748b'          // طوسی
   };
 
   return colors[category] || colors.other;
+};
+
+// تابع کمکی برای گرفتن همه رنگ‌ها (اگه نیاز باشه)
+export const getAllCategoryColors = () => {
+  return {
+    education: '#3b82f6',
+    creative: '#f97316',
+    mental: '#8b5cf6',
+    career: '#ec489a',
+    health: '#22c55e',
+    fitness: '#eab308',
+    finance: '#10b981',
+    productivity: '#6366f1',
+    social: '#ef4444',
+    family: '#f59e0b',
+    travel: '#06b6d4',
+    spiritual: '#a855f7',
+    other: '#64748b'
+  };
 };

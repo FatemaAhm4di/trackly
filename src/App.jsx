@@ -93,7 +93,9 @@ function AppRoutes() {
       
       {/* صفحه 404 */}
       <Route path="*" element={<NotFound />} />
+      <Route path="/profile" element={<Navigate to="/settings" replace />} />
     </Routes>
+    
   )
 }
 

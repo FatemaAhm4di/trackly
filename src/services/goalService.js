@@ -1,3 +1,4 @@
+import { useAuth } from '../hooks/useAuth'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
 // هماهنگ با Categories.jsx
@@ -10,8 +11,14 @@ const CATEGORIES = [
 const GOAL_TYPES = ['daily', 'count', 'time']
 
 export function useGoalService() {
-  const [goals, setGoals] = useLocalStorage('trackly_goals', [])
-  const [userStats, setUserStats] = useLocalStorage('trackly_stats', {
+  const { user } = useAuth()
+  
+  // کلیدهای ذخیره‌سازی بر اساس userId
+  const goalsStorageKey = user ? `trackly_goals_${user.id}` : 'trackly_goals_temp'
+  const statsStorageKey = user ? `trackly_stats_${user.id}` : 'trackly_stats_temp'
+  
+  const [goals, setGoals] = useLocalStorage(goalsStorageKey, [])
+  const [userStats, setUserStats] = useLocalStorage(statsStorageKey, {
     xpTotal: 0,
     streak: 0,
     completedCount: 0,
@@ -100,7 +107,6 @@ export function useGoalService() {
     return 1
   }
 
-  // ✅ محدودیت روزانه حذف شد
   const addProgress = (goalId, amount = 1) => {
     try {
       const goal = getGoalById(goalId)
@@ -206,6 +212,8 @@ export function useGoalService() {
 
     const validGoals = goals.filter(g => g.target > 0)
 
+    if (validGoals.length === 0) return 0
+
     const total = validGoals.reduce((sum, g) => {
       return sum + ((g.progress || 0) / g.target * 100)
     }, 0)
@@ -219,6 +227,14 @@ export function useGoalService() {
       streak: 0,
       lastActivityDate: null
     }))
+  }
+
+  // ✅ تابع جدید برای پاک کردن دیتای کاربر هنگام خروج
+  const clearUserData = () => {
+    if (user) {
+      localStorage.removeItem(`trackly_goals_${user.id}`)
+      localStorage.removeItem(`trackly_stats_${user.id}`)
+    }
   }
 
   return {
@@ -237,6 +253,7 @@ export function useGoalService() {
     searchGoals,
     getOverallProgress,
     resetStreak,
+    clearUserData,
     CATEGORIES,
     GOAL_TYPES
   }
