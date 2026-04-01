@@ -142,7 +142,7 @@
     "languages": "Languages",
     "features": "Features",
     "featureList": "Goal Management, Progress Tracking, Streak System, XP System",
-    "currentMode": "Current: {{mode}} mode",
+    "currentMode": "Current mode",
     "lastUpdate": "Last Update",
     "march2026": "March 2026",
     "developer": "Developer",

@@ -40,38 +40,81 @@ facebookProvider.addScope('email');
 facebookProvider.addScope('public_profile');
 githubProvider.addScope('user:email');
 
-// ========== توابع Cloud Backup ==========
+// ========== توابع Cloud Backup با دیباگ ==========
 
 // 📤 پشتیبان‌گیری از اهداف
 export const backupGoalsToCloud = async (userId, goals) => {
-  if (!userId) throw new Error('User not authenticated');
+  console.log('🔵 [BACKUP] Function called');
+  console.log('🔵 [BACKUP] userId:', userId);
+  console.log('🔵 [BACKUP] goals count:', goals?.length);
   
-  const userDocRef = doc(db, 'users', userId);
-  const backupData = {
-    goals: goals,
-    lastBackup: new Date().toISOString(),
-    version: '1.0'
-  };
+  if (!userId) {
+    console.log('🔴 [BACKUP] ERROR: No userId');
+    throw new Error('User not authenticated');
+  }
   
-  await setDoc(userDocRef, { backup: backupData }, { merge: true });
-  return { success: true, timestamp: backupData.lastBackup };
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    console.log('🔵 [BACKUP] Document reference:', userDocRef.path);
+    
+    const backupData = {
+      goals: goals,
+      lastBackup: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    console.log('🟢 [BACKUP] Saving to Firestore:', backupData);
+    await setDoc(userDocRef, { backup: backupData }, { merge: true });
+    console.log('✅ [BACKUP] Success!');
+    
+    return { success: true, timestamp: backupData.lastBackup };
+  } catch (error) {
+    console.error('❌ [BACKUP] Error:', error);
+    console.error('❌ [BACKUP] Error code:', error.code);
+    console.error('❌ [BACKUP] Error message:', error.message);
+    throw error;
+  }
 };
 
 // 📥 بازیابی اهداف از فضای ابری
 export const restoreGoalsFromCloud = async (userId) => {
-  if (!userId) throw new Error('User not authenticated');
+  console.log('🔵 [RESTORE] Function called');
+  console.log('🔵 [RESTORE] userId:', userId);
   
-  const userDocRef = doc(db, 'users', userId);
-  const docSnap = await getDoc(userDocRef);
-  
-  if (docSnap.exists() && docSnap.data().backup) {
-    return {
-      success: true,
-      goals: docSnap.data().backup.goals,
-      timestamp: docSnap.data().backup.lastBackup
-    };
+  if (!userId) {
+    console.log('🔴 [RESTORE] ERROR: No userId');
+    throw new Error('User not authenticated');
   }
-  return { success: false, error: 'No backup found' };
+  
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    console.log('🔵 [RESTORE] Document reference:', userDocRef.path);
+    
+    const docSnap = await getDoc(userDocRef);
+    console.log('🟢 [RESTORE] Document exists:', docSnap.exists());
+    
+    if (docSnap.exists() && docSnap.data().backup) {
+      const backupData = docSnap.data().backup;
+      console.log('✅ [RESTORE] Found backup:', {
+        goalsCount: backupData.goals?.length,
+        timestamp: backupData.lastBackup,
+        version: backupData.version
+      });
+      return {
+        success: true,
+        goals: backupData.goals,
+        timestamp: backupData.lastBackup
+      };
+    }
+    
+    console.log('🟡 [RESTORE] No backup found');
+    return { success: false, error: 'No backup found' };
+  } catch (error) {
+    console.error('❌ [RESTORE] Error:', error);
+    console.error('❌ [RESTORE] Error code:', error.code);
+    console.error('❌ [RESTORE] Error message:', error.message);
+    throw error;
+  }
 };
 
 export { auth, db, googleProvider, facebookProvider, githubProvider };

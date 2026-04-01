@@ -334,9 +334,11 @@ export default function Settings() {
                 </Button>
               </Box>
 
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                {t('settings.currentMode')}: {themeMode === 'light' ? '☀️ Light' : '🌙 Dark'}
-              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mt: 1 }}>
+  {t('settings.currentMode')}:
+  <Icon name={themeMode === 'light' ? 'LightMode' : 'DarkMode'} size={14} color={themeMode === 'light' ? 'warning' : 'info'} />
+  {themeMode === 'light' ? t('settings.light') : t('settings.dark')}
+</Typography>
             </CardContent>
           </Card>
         </Grid>
