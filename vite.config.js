@@ -10,5 +10,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false
-  }
+  },
+  plugins: [react()],
+  base: '/trackly/',
 })
