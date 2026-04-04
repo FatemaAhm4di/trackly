@@ -1,275 +1,200 @@
-import { useState } from 'react'
-import { Box, TextField, InputAdornment, IconButton, Alert, Link, Divider, alpha, useTheme } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import Button from '../ui/Button'
-import Icon from '../ui/Icon'
+import { Box, Paper, Container } from '@mui/material'
+import { useLocation } from 'react-router-dom'
 import Typography from '../ui/Typography'
 
-export default function LoginForm() {
-  const navigate = useNavigate()
-  const theme = useTheme()
-  const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, loading } = useAuth()
+export default function AuthLayout({ children, title, subtitle }) {
 
-  const [formData, setFormData] = useState({ email: '', password: '' })
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  // ✅ حذف localLoading - فقط از loading استفاده کن
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    if (error) setError('')
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (isSubmitting) return
-    
-    setIsSubmitting(true)
-    setError('')
-
-    try {
-      if (!formData.email || !formData.password) {
-        setError('Please fill in all fields')
-        setIsSubmitting(false)
-        return
-      }
-
-      const result = await login(formData.email, formData.password)
-
-      if (result?.success) {
-        navigate('/dashboard')
-      } else {
-        let errorMessage = result?.error || 'Login failed'
-        
-        if (errorMessage.includes('user-not-found')) {
-          errorMessage = 'No account found with this email. Please sign up first.'
-        } else if (errorMessage.includes('wrong-password')) {
-          errorMessage = 'Incorrect password. Please try again.'
-        } else if (errorMessage.includes('invalid-email')) {
-          errorMessage = 'Please enter a valid email address.'
-        } else if (errorMessage.includes('too-many-requests')) {
-          errorMessage = 'Too many failed attempts. Please try again later.'
-        } else {
-          errorMessage = 'Login failed. Please try again.'
-        }
-        
-        setError(errorMessage)
-      }
-    } catch (err) {
-      console.error('Login error:', err)
-      setError('Something went wrong. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleSocialLogin = async (provider) => {
-    if (isSubmitting) return
-    
-    setIsSubmitting(true)
-    setError('')
-    let result
-
-    try {
-      if (provider === 'google') result = await loginWithGoogle()
-      if (provider === 'facebook') result = await loginWithFacebook()
-      if (provider === 'github') result = await loginWithGithub()
-
-      if (result?.success) {
-        navigate('/dashboard')
-      } else {
-        setError(result?.error || 'Social login failed')
-      }
-    } catch (err) {
-      console.error('Social login error:', err)
-      setError('Social login failed. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const inputStyle = {
-    mb: 3,
-    '& .MuiOutlinedInput-root': {
-      borderRadius: 2,
-      transition: 'all .25s ease',
-      '&:hover': { transform: 'translateY(-1px)' },
-      '&.Mui-focused': {
-        boxShadow: '0 0 0 3px rgba(54,138,199,0.15)'
-      }
-    }
-  }
+  const location = useLocation()
+  const isLogin = location.pathname === '/login'
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
-        </Alert>
-      )}
+    <Container
+      maxWidth="lg"
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        py: { xs: 2, sm: 4 }
+      }}
+    >
 
-      <TextField
-        fullWidth
-        name="email"
-        type="email"
-        placeholder="Email address"
-        value={formData.email}
-        onChange={handleChange}
-        sx={inputStyle}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Icon name="Email" size={20} color="primary.main" />
-            </InputAdornment>
-          )
-        }}
-      />
-
-      <TextField
-        fullWidth
-        name="password"
-        type={showPassword ? 'text' : 'password'}
-        placeholder="Password"
-        value={formData.password}
-        onChange={handleChange}
-        sx={{ ...inputStyle, mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Icon name="Lock" size={20} color="primary.main" />
-            </InputAdornment>
-          ),
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                <Icon name={showPassword ? 'VisibilityOff' : 'Visibility'} size={20} />
-              </IconButton>
-            </InputAdornment>
-          )
-        }}
-      />
-
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <Link 
-          href="#" 
-          underline="hover" 
-          color="text.secondary"
-          onClick={(e) => {
-            e.preventDefault()
-          }}
-        >
-          Forgot password?
-        </Link>
-      </Box>
-
-      <Button
-        type="submit"
-        variant="contained"
-        fullWidth
-        size="large"
-        disabled={isSubmitting || loading}
+      <Paper
+        elevation={0}
         sx={{
-          py: 1.8,
-          borderRadius: 2,
-          fontWeight: 700,
-          fontSize: '1rem',
-          background: 'linear-gradient(135deg, #2c7ab1 0%, #368ac7 100%)',
-          boxShadow: '0 10px 20px rgba(54, 138, 199, 0.35)',
-          transition: 'all .25s ease',
-          '&:hover': {
-            transform: 'translateY(-3px)',
-            boxShadow: '0 16px 28px rgba(54, 138, 199, 0.45)'
-          }
+          position: 'relative',
+          width: '100%',
+          height: { xs: 'auto', sm: 580, md: 620 },
+          minHeight: { xs: 'auto', sm: 580, md: 620 },
+          borderRadius: { xs: 3, sm: 4 },
+          overflow: 'hidden',
+          boxShadow: '0 30px 80px rgba(5, 5, 5, 0.35)',
+          border: '1px solid rgba(121, 120, 120, 0.05)',
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' }
         }}
       >
-        {isSubmitting ? 'Signing in...' : 'Sign In'}
-      </Button>
 
-      <Divider sx={{ my: 3 }}>
-        <Typography variant="body2" color="text.secondary">
-          Or continue with
-        </Typography>
-      </Divider>
+        {/* GRADIENT PANEL - در موبایل و تبلت بالا */}
+        <Box
+          sx={{
+            width: { xs: '100%', md: '50%' },
+            height: { xs: 280, sm: 320, md: '100%' },
+            order: { xs: 1, md: isLogin ? 2 : 1 },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: { xs: 3, sm: 4, md: 6 },
+            overflow: 'hidden',
+            position: 'relative',
+            background:
+              'linear-gradient(135deg,#0f2027 0%,#203a43 45%,#2c5364 100%)'
+          }}
+        >
 
-      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-        <IconButton 
-          onClick={() => handleSocialLogin('google')} 
-          disabled={isSubmitting}
-          sx={{ 
-            flex: 1, 
-            border: 1, 
-            borderColor: 'divider',
-            borderRadius: 2,
-            py: 1,
-            '&:hover': {
-              bgcolor: alpha(theme.palette.primary.main, 0.05),
-              borderColor: 'primary.main'
+          {/* glow - تنظیم برای موبایل */}
+          <Box
+            sx={{
+              position: 'absolute',
+              width: { xs: 200, sm: 280, md: 420 },
+              height: { xs: 200, sm: 280, md: 420 },
+              background: 'rgba(0,180,255,.25)',
+              filter: 'blur(70px)',
+              top: { xs: -50, sm: -70, md: -120 },
+              right: { xs: -50, sm: -70, md: -120 }
+            }}
+          />
+
+          <Box
+            sx={{
+              position: 'absolute',
+              width: { xs: 160, sm: 220, md: 350 },
+              height: { xs: 160, sm: 220, md: 350 },
+              background: 'rgba(120,0,255,.25)',
+              filter: 'blur(70px)',
+              bottom: { xs: -50, sm: -70, md: -120 },
+              left: { xs: -50, sm: -70, md: -120 }
+            }}
+          />
+
+          {/* CONTENT */}
+          <Box
+            sx={{
+              position: 'relative',
+              zIndex: 2,
+              textAlign: 'center',
+              maxWidth: 420,
+              color: 'white'
+            }}
+          >
+
+            <Box
+              component="img"
+              src="/goal-illustration.svg"
+              alt="goal illustration"
+              sx={{
+                width: { xs: '60%', sm: '50%', md: '100%' },
+                maxWidth: { xs: 150, sm: 180, md: 300 },
+                height: 'auto',
+                mb: { xs: 1, sm: 1.5, md: 4 },
+                mx: 'auto',
+                display: 'block',
+                animation: 'float 6s ease-in-out infinite'
+              }}
+            />
+
+            <Typography
+              variant="h2"
+              fontWeight="800"
+              gutterBottom
+              sx={{ 
+                fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.5rem' },
+                mb: { xs: 0.5, sm: 1, md: 2 }
+              }}
+            >
+              Trackly
+            </Typography>
+
+            <Typography
+              variant="h6"
+              sx={{ 
+                opacity: .9, 
+                mb: { xs: 0.5, sm: 1, md: 2 },
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' }
+              }}
+            >
+              Your Goal Tracking Companion
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{ 
+                opacity: .75,
+                fontSize: { xs: '0.8rem', sm: '0.85rem', md: '1rem' }
+              }}
+            >
+              Track goals, build streaks,
+              earn XP and improve every day.
+            </Typography>
+
+          </Box>
+
+
+          <style>
+            {`
+            @keyframes float {
+              0% { transform: translateY(0px); }
+              50% { transform: translateY(-12px); }
+              100% { transform: translateY(0px); }
             }
+            `}
+          </style>
+
+        </Box>
+
+        {/* FORM PANEL - در موبایل و تبلت پایین */}
+        <Box
+          sx={{
+            width: { xs: '100%', md: '50%' },
+            height: { xs: 'auto', md: '100%' },
+            order: { xs: 2, md: isLogin ? 1 : 2 },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'background.paper',
+            p: { xs: 4, sm: 5, md: 6 },
+            zIndex: 3
           }}
         >
-          <Icon name="Google" size={24} />
-        </IconButton>
 
-        <IconButton 
-          onClick={() => handleSocialLogin('facebook')} 
-          disabled={isSubmitting}
-          sx={{ 
-            flex: 1, 
-            border: 1, 
-            borderColor: 'divider',
-            borderRadius: 2,
-            py: 1,
-            '&:hover': {
-              bgcolor: alpha(theme.palette.primary.main, 0.05),
-              borderColor: 'primary.main'
-            }
-          }}
-        >
-          <Icon name="Facebook" size={24} />
-        </IconButton>
+          <Box sx={{ width: '100%', maxWidth: 420 }}>
 
-        <IconButton 
-          onClick={() => handleSocialLogin('github')} 
-          disabled={isSubmitting}
-          sx={{ 
-            flex: 1, 
-            border: 1, 
-            borderColor: 'divider',
-            borderRadius: 2,
-            py: 1,
-            '&:hover': {
-              bgcolor: alpha(theme.palette.primary.main, 0.05),
-              borderColor: 'primary.main'
-            }
-          }}
-        >
-          <Icon name="GitHub" size={24} />
-        </IconButton>
-      </Box>
+            <Typography
+              variant="h3"
+              fontWeight="800"
+              gutterBottom
+              sx={{ fontSize: { xs: '1.8rem', sm: '2.2rem', md: '3rem' } }}
+            >
+              {title}
+            </Typography>
 
-      <Box sx={{ textAlign: 'center', mt: 3 }}>
-        <Typography variant="body2" color="text.secondary" display="inline">
-          Don't have an account?{' '}
-        </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 4, fontSize: { xs: '0.9rem', sm: '0.95rem', md: '1rem' } }}
+            >
+              {subtitle}
+            </Typography>
 
-        <Link
-          href="#"
-          underline="hover"
-          color="primary"
-          sx={{ fontWeight: 600, cursor: 'pointer' }}
-          onClick={(e) => {
-            e.preventDefault()
-            navigate('/register')
-          }}
-        >
-          Create account
-        </Link>
-      </Box>
+            {children}
 
-    </Box>
+          </Box>
+
+        </Box>
+
+      </Paper>
+
+    </Container>
+
   )
 }

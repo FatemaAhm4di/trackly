@@ -1,29 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react'
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  onAuthStateChanged,
-  signOut
-} from 'firebase/auth'
-
-import {
-  auth,
-  googleProvider,
-  facebookProvider,
-  githubProvider
-} from '../config/firebase'
 
 const AuthContext = createContext()
 export { AuthContext }
-
-// تشخیص موبایل
-const isMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-}
 
 export function AuthProvider({ children }) {
 
@@ -32,46 +10,15 @@ export function AuthProvider({ children }) {
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
 
-  // ✅ sync with firebase + handle redirect result
+  // Load user from localStorage on mount
   useEffect(() => {
-    // بررسی نتیجه redirect (برای موبایل)
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth)
-        if (result) {
-          const firebaseUser = result.user
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName || 'User',
-            avatar: firebaseUser.photoURL || ''
-          })
-          loadNotifications(firebaseUser.uid)
-        }
-      } catch (error) {
-        console.error('Redirect result error:', error)
-      }
+    const savedUser = localStorage.getItem('trackly_user')
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser)
+      setUser(parsedUser)
+      loadNotifications(parsedUser.id)
     }
-    
-    handleRedirectResult()
-
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName || 'User',
-          avatar: firebaseUser.photoURL || ''
-        })
-        loadNotifications(firebaseUser.uid)
-      } else {
-        setUser(null)
-        setNotifications([])
-        setUnreadCount(0)
-      }
-      setLoading(false)
-    })
-    return () => unsubscribe()
+    setLoading(false)
   }, [])
 
   // Load notifications from localStorage
@@ -128,6 +75,7 @@ export function AuthProvider({ children }) {
     const updated = [newNotification, ...notifications]
     setNotifications(updated)
     setUnreadCount(prev => prev + 1)
+    
     saveNotifications(user.id, updated)
     
     return newNotification
@@ -140,7 +88,10 @@ export function AuthProvider({ children }) {
     )
     setNotifications(updated)
     setUnreadCount(updated.filter(n => !n.read).length)
-    if (user) saveNotifications(user.id, updated)
+    
+    if (user) {
+      saveNotifications(user.id, updated)
+    }
   }
 
   // Mark all as read
@@ -148,7 +99,10 @@ export function AuthProvider({ children }) {
     const updated = notifications.map(n => ({ ...n, read: true }))
     setNotifications(updated)
     setUnreadCount(0)
-    if (user) saveNotifications(user.id, updated)
+    
+    if (user) {
+      saveNotifications(user.id, updated)
+    }
   }
 
   // Delete notification
@@ -156,131 +110,157 @@ export function AuthProvider({ children }) {
     const updated = notifications.filter(n => n.id !== notificationId)
     setNotifications(updated)
     setUnreadCount(updated.filter(n => !n.read).length)
-    if (user) saveNotifications(user.id, updated)
+    
+    if (user) {
+      saveNotifications(user.id, updated)
+    }
   }
 
   // Delete all notifications
   const clearAllNotifications = () => {
     setNotifications([])
     setUnreadCount(0)
-    if (user) saveNotifications(user.id, [])
+    
+    if (user) {
+      saveNotifications(user.id, [])
+    }
   }
 
   // ===============================
-  // ✅ LOGIN (EMAIL)
+  // ✅ LOGIN (EMAIL) - LOCAL
   // ===============================
   const login = async (email, password) => {
     setLoading(true)
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password)
-      const firebaseUser = result.user
-      setUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-        avatar: firebaseUser.photoURL || ''
-      })
+      const users = JSON.parse(localStorage.getItem('trackly_users') || '[]')
+      const foundUser = users.find(u => u.email === email && u.password === password)
+      
+      if (!foundUser) {
+        return { success: false, error: 'auth/user-not-found' }
+      }
+      
+      const loggedUser = {
+        id: foundUser.id,
+        email: foundUser.email,
+        name: foundUser.name || foundUser.email.split('@')[0],
+        avatar: foundUser.avatar || ''
+      }
+      
+      setUser(loggedUser)
+      localStorage.setItem('trackly_user', JSON.stringify(loggedUser))
+      loadNotifications(loggedUser.id)
+      
       return { success: true }
     } catch (error) {
       console.error('Login error:', error)
-      let errorMessage = error.message
-      
-      if (errorMessage.includes('auth/user-not-found')) {
-        errorMessage = 'auth/user-not-found'
-      } else if (errorMessage.includes('auth/wrong-password')) {
-        errorMessage = 'auth/wrong-password'
-      } else if (errorMessage.includes('auth/invalid-email')) {
-        errorMessage = 'auth/invalid-email'
-      } else if (errorMessage.includes('auth/too-many-requests')) {
-        errorMessage = 'auth/too-many-requests'
-      }
-      
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // ===============================
-  // ✅ REGISTER (EMAIL)
-  // ===============================
-  const register = async (email, password, name) => {
-    setLoading(true)
-    try {
-      const result = await createUserWithEmailAndPassword(auth, email, password)
-      await updateProfile(result.user, { displayName: name })
-      
-      setUser({
-        id: result.user.uid,
-        email: result.user.email,
-        name: name,
-        avatar: ''
-      })
-      
-      setTimeout(() => addNotification('welcome', {}), 1000)
-      return { success: true }
-    } catch (error) {
-      console.error('Register error:', error)
-      let errorMessage = error.message
-      
-      if (errorMessage.includes('auth/email-already-in-use')) {
-        errorMessage = 'auth/email-already-in-use'
-      } else if (errorMessage.includes('auth/weak-password')) {
-        errorMessage = 'auth/weak-password'
-      } else if (errorMessage.includes('auth/invalid-email')) {
-        errorMessage = 'auth/invalid-email'
-      }
-      
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // ===============================
-  // ✅ SOCIAL LOGIN (با تشخیص موبایل)
-  // ===============================
-  const socialLogin = async (provider, providerName) => {
-    setLoading(true)
-    try {
-      if (isMobile()) {
-        // موبایل: استفاده از redirect
-        await signInWithRedirect(auth, provider)
-        return { success: true, redirect: true }
-      } else {
-        // دسکتاپ: استفاده از popup
-        const result = await signInWithPopup(auth, provider)
-        const firebaseUser = result.user
-        setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName || firebaseUser.email,
-          avatar: firebaseUser.photoURL
-        })
-        return { success: true }
-      }
-    } catch (error) {
-      console.error(`${providerName} login error:`, error)
       return { success: false, error: error.message }
     } finally {
       setLoading(false)
     }
   }
 
-  const loginWithGoogle = () => socialLogin(googleProvider, 'Google')
-  const loginWithFacebook = () => socialLogin(facebookProvider, 'Facebook')
-  const loginWithGithub = () => socialLogin(githubProvider, 'GitHub')
+  // ===============================
+  // ✅ REGISTER (EMAIL) - LOCAL
+  // ===============================
+  const register = async (email, password, name) => {
+    setLoading(true)
+    try {
+      const users = JSON.parse(localStorage.getItem('trackly_users') || '[]')
+      
+      if (users.find(u => u.email === email)) {
+        return { success: false, error: 'auth/email-already-in-use' }
+      }
+      
+      const newUser = {
+        id: Date.now().toString(),
+        email,
+        password,
+        name,
+        avatar: ''
+      }
+      
+      users.push(newUser)
+      localStorage.setItem('trackly_users', JSON.stringify(users))
+      
+      const loggedUser = {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        avatar: ''
+      }
+      
+      setUser(loggedUser)
+      localStorage.setItem('trackly_user', JSON.stringify(loggedUser))
+      
+      setTimeout(() => {
+        addNotification('welcome', {})
+      }, 1000)
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Register error:', error)
+      return { success: false, error: error.message }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ===============================
+  // ✅ GOOGLE LOGIN (Mock)
+  // ===============================
+  const loginWithGoogle = async () => {
+    setLoading(true)
+    try {
+      const mockUser = {
+        id: 'google_' + Date.now(),
+        email: `user_${Date.now()}@gmail.com`,
+        name: 'Google User',
+        avatar: ''
+      }
+      
+      setUser(mockUser)
+      localStorage.setItem('trackly_user', JSON.stringify(mockUser))
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Google login error:', error)
+      return { success: false, error: error.message }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ===============================
+  // ✅ GITHUB LOGIN (Mock)
+  // ===============================
+  const loginWithGithub = async () => {
+    setLoading(true)
+    try {
+      const mockUser = {
+        id: 'github_' + Date.now(),
+        email: `user_${Date.now()}@github.com`,
+        name: 'GitHub User',
+        avatar: ''
+      }
+      
+      setUser(mockUser)
+      localStorage.setItem('trackly_user', JSON.stringify(mockUser))
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Github login error:', error)
+      return { success: false, error: error.message }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // ===============================
   // ✅ LOGOUT
   // ===============================
   const logout = async () => {
-    try {
-      await signOut(auth)
-      setUser(null)
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
+    localStorage.removeItem('trackly_user')
+    setUser(null)
   }
 
   // ===============================
@@ -288,16 +268,22 @@ export function AuthProvider({ children }) {
   // ===============================
   const updateUserProfile = async ({ name, avatar }) => {
     try {
-      if (!auth.currentUser) {
+      if (!user) {
         return { success: false, error: 'No user' }
       }
       
-      await updateProfile(auth.currentUser, {
-        displayName: name,
-        photoURL: avatar
-      })
+      const updatedUser = { ...user, name, avatar }
+      setUser(updatedUser)
+      localStorage.setItem('trackly_user', JSON.stringify(updatedUser))
       
-      setUser(prev => ({ ...prev, name, avatar }))
+      const users = JSON.parse(localStorage.getItem('trackly_users') || '[]')
+      const index = users.findIndex(u => u.id === user.id)
+      if (index !== -1) {
+        users[index].name = name
+        users[index].avatar = avatar
+        localStorage.setItem('trackly_users', JSON.stringify(users))
+      }
+      
       return { success: true }
     } catch (error) {
       console.error('Update profile error:', error)
@@ -311,7 +297,6 @@ export function AuthProvider({ children }) {
     login,
     register,
     loginWithGoogle,
-    loginWithFacebook,
     loginWithGithub,
     logout,
     updateUserProfile,

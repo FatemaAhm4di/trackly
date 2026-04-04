@@ -5,7 +5,6 @@ import { useThemeContext } from '../hooks/useThemeContext'
 import { useGoalService } from '../services/useGoalService'
 import { exportGoalsJSON, exportGoalsCSV, exportGoalsPDF } from '../utils/exportUtils'
 import { useAuth } from '../hooks/useAuth'
-import { backupGoalsToCloud, restoreGoalsFromCloud } from '../config/firebase'
 
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
@@ -115,6 +114,9 @@ export default function Settings() {
     setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
   }
 
+  // ===============================
+  // ✅ BACKUP (LocalStorage)
+  // ===============================
   const handleBackup = async () => {
     if (!user) {
       showNotification(t('settings.loginRequired') || 'Please login to backup', 'error')
@@ -123,10 +125,15 @@ export default function Settings() {
     
     setBackupLoading(true)
     try {
-      const result = await backupGoalsToCloud(user.id, goals)
-      if (result.success) {
-        showNotification(t('settings.backupSuccess') || 'Goals backed up successfully!')
+      const backupData = {
+        goals: goals,
+        timestamp: new Date().toISOString(),
+        userId: user.id,
+        version: '1.0'
       }
+      localStorage.setItem(`trackly_backup_${user.id}`, JSON.stringify(backupData))
+      
+      showNotification(t('settings.backupSuccess') || 'Goals backed up successfully!')
     } catch (error) {
       console.error('Backup error:', error)
       showNotification(error.message, 'error')
@@ -135,6 +142,9 @@ export default function Settings() {
     }
   }
 
+  // ===============================
+  // ✅ RESTORE (LocalStorage)
+  // ===============================
   const handleRestore = async () => {
     if (!user) {
       showNotification(t('settings.loginRequired') || 'Please login to restore', 'error')
@@ -143,8 +153,16 @@ export default function Settings() {
     
     setRestoreLoading(true)
     try {
-      const result = await restoreGoalsFromCloud(user.id)
-      if (result.success && result.goals && result.goals.length > 0) {
+      const savedBackup = localStorage.getItem(`trackly_backup_${user.id}`)
+      
+      if (!savedBackup) {
+        showNotification(t('settings.noBackup') || 'No backup found', 'error')
+        return
+      }
+      
+      const backupData = JSON.parse(savedBackup)
+      
+      if (backupData.goals && backupData.goals.length > 0) {
         
         if (goals && goals.length > 0 && deleteGoal) {
           for (const goal of goals) {
@@ -157,7 +175,7 @@ export default function Settings() {
         }
         
         if (createGoal) {
-          for (const goal of result.goals) {
+          for (const goal of backupData.goals) {
             try {
               createGoal(goal)
             } catch (err) {
@@ -166,7 +184,7 @@ export default function Settings() {
           }
         }
         
-        showNotification(t('settings.restoreSuccess') || `Restored ${result.goals.length} goals from backup!`)
+        showNotification(t('settings.restoreSuccess') || `Restored ${backupData.goals.length} goals from backup!`)
       } else {
         showNotification(t('settings.noBackup') || 'No backup found', 'error')
       }
@@ -517,7 +535,6 @@ export default function Settings() {
                 <Chip icon={<Icon name="Code" size={16} />} label="React 18 + Vite" variant="outlined" size="small" />
                 <Chip icon={<Icon name="Palette" size={16} />} label="Material UI v5" variant="outlined" size="small" />
                 <Chip icon={<Icon name="BarChart" size={16} />} label="Recharts" variant="outlined" size="small" />
-                <Chip icon={<Icon name="Security" size={16} />} label="Firebase Auth" variant="outlined" size="small" />
                 <Chip icon={<Icon name="Storage" size={16} />} label="LocalStorage" variant="outlined" size="small" />
               </Box>
             </Grid>
