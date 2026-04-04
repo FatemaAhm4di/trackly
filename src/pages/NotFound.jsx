@@ -45,7 +45,7 @@ export default function NotFound() {
       <Button
         variant="contained"
         color="primary"
-        startIcon="Home"
+        // startIcon="Home"
         onClick={() => navigate('/')}
         sx={{ px: 4 }}
       >

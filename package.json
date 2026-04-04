@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://YOUR-USERNAME.github.io/trackly",
+  "homepage": "https://FatemaAhm4di.github.io/trackly",
   "description": "Trackly - Goal Tracker Dashboard",
   "scripts": {
     "dev": "vite",

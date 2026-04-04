@@ -4,6 +4,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   signOut
 } from 'firebase/auth'
@@ -18,6 +20,11 @@ import {
 const AuthContext = createContext()
 export { AuthContext }
 
+// تشخیص موبایل
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
 export function AuthProvider({ children }) {
 
   const [user, setUser] = useState(null)
@@ -25,8 +32,29 @@ export function AuthProvider({ children }) {
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
 
-  // ✅ sync with firebase
+  // ✅ sync with firebase + handle redirect result
   useEffect(() => {
+    // بررسی نتیجه redirect (برای موبایل)
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        if (result) {
+          const firebaseUser = result.user
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || 'User',
+            avatar: firebaseUser.photoURL || ''
+          })
+          loadNotifications(firebaseUser.uid)
+        }
+      } catch (error) {
+        console.error('Redirect result error:', error)
+      }
+    }
+    
+    handleRedirectResult()
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
@@ -35,7 +63,6 @@ export function AuthProvider({ children }) {
           name: firebaseUser.displayName || 'User',
           avatar: firebaseUser.photoURL || ''
         })
-        // Load notifications for this user
         loadNotifications(firebaseUser.uid)
       } else {
         setUser(null)
@@ -101,8 +128,6 @@ export function AuthProvider({ children }) {
     const updated = [newNotification, ...notifications]
     setNotifications(updated)
     setUnreadCount(prev => prev + 1)
-    
-    // Save to localStorage
     saveNotifications(user.id, updated)
     
     return newNotification
@@ -115,10 +140,7 @@ export function AuthProvider({ children }) {
     )
     setNotifications(updated)
     setUnreadCount(updated.filter(n => !n.read).length)
-    
-    if (user) {
-      saveNotifications(user.id, updated)
-    }
+    if (user) saveNotifications(user.id, updated)
   }
 
   // Mark all as read
@@ -126,10 +148,7 @@ export function AuthProvider({ children }) {
     const updated = notifications.map(n => ({ ...n, read: true }))
     setNotifications(updated)
     setUnreadCount(0)
-    
-    if (user) {
-      saveNotifications(user.id, updated)
-    }
+    if (user) saveNotifications(user.id, updated)
   }
 
   // Delete notification
@@ -137,20 +156,14 @@ export function AuthProvider({ children }) {
     const updated = notifications.filter(n => n.id !== notificationId)
     setNotifications(updated)
     setUnreadCount(updated.filter(n => !n.read).length)
-    
-    if (user) {
-      saveNotifications(user.id, updated)
-    }
+    if (user) saveNotifications(user.id, updated)
   }
 
   // Delete all notifications
   const clearAllNotifications = () => {
     setNotifications([])
     setUnreadCount(0)
-    
-    if (user) {
-      saveNotifications(user.id, [])
-    }
+    if (user) saveNotifications(user.id, [])
   }
 
   // ===============================
@@ -172,7 +185,6 @@ export function AuthProvider({ children }) {
       console.error('Login error:', error)
       let errorMessage = error.message
       
-      // تبدیل خطا به پیام readable
       if (errorMessage.includes('auth/user-not-found')) {
         errorMessage = 'auth/user-not-found'
       } else if (errorMessage.includes('auth/wrong-password')) {
@@ -196,32 +208,21 @@ export function AuthProvider({ children }) {
     setLoading(true)
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password)
+      await updateProfile(result.user, { displayName: name })
       
-      // Set display name
-      await updateProfile(result.user, {
-        displayName: name
-      })
-      
-      const newUser = {
+      setUser({
         id: result.user.uid,
         email: result.user.email,
         name: name,
         avatar: ''
-      }
+      })
       
-      setUser(newUser)
-      
-      // Add welcome notification for new user
-      setTimeout(() => {
-        addNotification('welcome', {})
-      }, 1000)
-      
+      setTimeout(() => addNotification('welcome', {}), 1000)
       return { success: true }
     } catch (error) {
       console.error('Register error:', error)
       let errorMessage = error.message
       
-      // تبدیل خطا به پیام readable
       if (errorMessage.includes('auth/email-already-in-use')) {
         errorMessage = 'auth/email-already-in-use'
       } else if (errorMessage.includes('auth/weak-password')) {
@@ -237,73 +238,38 @@ export function AuthProvider({ children }) {
   }
 
   // ===============================
-  // ✅ GOOGLE LOGIN
+  // ✅ SOCIAL LOGIN (با تشخیص موبایل)
   // ===============================
-  const loginWithGoogle = async () => {
+  const socialLogin = async (provider, providerName) => {
     setLoading(true)
     try {
-      const result = await signInWithPopup(auth, googleProvider)
-      const firebaseUser = result.user
-      setUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName,
-        avatar: firebaseUser.photoURL
-      })
-      return { success: true }
+      if (isMobile()) {
+        // موبایل: استفاده از redirect
+        await signInWithRedirect(auth, provider)
+        return { success: true, redirect: true }
+      } else {
+        // دسکتاپ: استفاده از popup
+        const result = await signInWithPopup(auth, provider)
+        const firebaseUser = result.user
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || firebaseUser.email,
+          avatar: firebaseUser.photoURL
+        })
+        return { success: true }
+      }
     } catch (error) {
-      console.error('Google login error:', error)
+      console.error(`${providerName} login error:`, error)
       return { success: false, error: error.message }
     } finally {
       setLoading(false)
     }
   }
 
-  // ===============================
-  // ✅ FACEBOOK LOGIN
-  // ===============================
-  const loginWithFacebook = async () => {
-    setLoading(true)
-    try {
-      const result = await signInWithPopup(auth, facebookProvider)
-      const firebaseUser = result.user
-      setUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName,
-        avatar: firebaseUser.photoURL
-      })
-      return { success: true }
-    } catch (error) {
-      console.error('Facebook login error:', error)
-      return { success: false, error: error.message }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // ===============================
-  // ✅ GITHUB LOGIN
-  // ===============================
-  const loginWithGithub = async () => {
-    setLoading(true)
-    try {
-      const result = await signInWithPopup(auth, githubProvider)
-      const firebaseUser = result.user
-      setUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName || firebaseUser.email,
-        avatar: firebaseUser.photoURL
-      })
-      return { success: true }
-    } catch (error) {
-      console.error('Github login error:', error)
-      return { success: false, error: error.message }
-    } finally {
-      setLoading(false)
-    }
-  }
+  const loginWithGoogle = () => socialLogin(googleProvider, 'Google')
+  const loginWithFacebook = () => socialLogin(facebookProvider, 'Facebook')
+  const loginWithGithub = () => socialLogin(githubProvider, 'GitHub')
 
   // ===============================
   // ✅ LOGOUT
@@ -312,9 +278,6 @@ export function AuthProvider({ children }) {
     try {
       await signOut(auth)
       setUser(null)
-      // نوتیفیکیشن‌ها رو پاک نکن، فقط user رو null کن
-      // setNotifications([])  // این خط رو حذف کردم تا نوتیفیکیشن‌ها پاک نشن
-      // setUnreadCount(0)     // این خط رو هم حذف کردم
     } catch (error) {
       console.error('Logout error:', error)
     }
@@ -334,12 +297,7 @@ export function AuthProvider({ children }) {
         photoURL: avatar
       })
       
-      setUser(prev => ({
-        ...prev,
-        name: name,
-        avatar: avatar
-      }))
-      
+      setUser(prev => ({ ...prev, name, avatar }))
       return { success: true }
     } catch (error) {
       console.error('Update profile error:', error)
@@ -357,7 +315,6 @@ export function AuthProvider({ children }) {
     loginWithGithub,
     logout,
     updateUserProfile,
-    // Notification functions
     notifications,
     unreadCount,
     addNotification,
