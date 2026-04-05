@@ -1,4 +1,3 @@
-// src/utils/goalUtils.js
 export const getTypeLabel = (type, t) => {
   switch (type) {
     case 'daily': return t('common.days') || 'days'

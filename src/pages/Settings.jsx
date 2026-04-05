@@ -2,7 +2,7 @@ import { Box, Grid, Card, CardContent, FormControl, InputLabel, Select, MenuItem
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../hooks/useLanguage'
 import { useThemeContext } from '../hooks/useThemeContext'
-import { useGoalService } from '../services/useGoalService'
+import { useGoalService } from '../hooks/useGoalService'
 import { exportGoalsJSON, exportGoalsCSV, exportGoalsPDF } from '../utils/exportUtils'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
