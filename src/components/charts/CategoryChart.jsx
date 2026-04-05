@@ -54,17 +54,17 @@ export default function CategoryChart({ goals }) {
     });
     
     const COLORS = {
-      education: '#2196f3',
+      education: '#278de0',
       creative: '#9c27b0',
-      mental: '#4caf50',
-      career: '#ff9800',
+      mental: '#1b781e',
+      career: '#c97b06',
       health: '#f44336',
       fitness: '#00bcd4',
       finance: '#ffc107',
-      productivity: '#3f51b5',
+      productivity: '#26389f',
       social: '#e91e63',
       family: '#8bc34a',
-      travel: '#009688',
+      travel: '#04544c',
       spiritual: '#673ab7',
       other: '#9e9e9e'
     };
