@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import AuthLayout from '../components/auth/AuthLayout'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
@@ -12,6 +13,7 @@ export default function Register() {
   const navigate = useNavigate()
   const theme = useTheme()
   const { register, user } = useAuth()
+  const { showToast } = useToast()
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -66,6 +68,11 @@ export default function Register() {
       const result = await register(formData.email, formData.password, formData.fullName)
       
       if (result?.success) {
+        showToast({
+          title: '🎉 Account Created!',
+          message: `Welcome to Trackly, ${formData.fullName}! Start tracking your first goal.`,
+          type: 'success'
+        })
         navigate('/dashboard')
       } else {
         let errorMessage = result?.error || 'Registration failed'

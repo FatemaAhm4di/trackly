@@ -3,18 +3,20 @@ import { Box, Grid, Card, CardContent, Chip } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
 import { useGoalService } from '../services/goalService'
+import { useToast } from '../hooks/useToast'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
 import ProgressBar from '../components/ui/ProgressBar'
 import Dialog from '../components/ui/Dialog'
 import Input from '../components/ui/Input'
-import { PageLoading, ButtonLoading } from '../components/ui/Loading'  // ✅ ایمپورت لودینگ
+import { PageLoading, ButtonLoading } from '../components/ui/Loading'
 
 export default function GoalDetail() {
   const navigate = useNavigate()
   const { id } = useParams()
   const { t } = useLanguage()
+  const { showToast } = useToast()
   const { 
     getGoalById, 
     updateGoal, 
@@ -27,10 +29,8 @@ export default function GoalDetail() {
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [progressDialog, setProgressDialog] = useState(false)
   const [progressAmount, setProgressAmount] = useState(1)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [showError, setShowError] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)  // ✅ state برای لودینگ دکمه‌ها
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -43,7 +43,7 @@ export default function GoalDetail() {
         }
         setLoading(false)
       }
-    }, 500)  // ✅ افزایش به 500ms برای دیدن لودینگ
+    }, 500)
     
     return () => {
       isMounted = false
@@ -100,12 +100,19 @@ export default function GoalDetail() {
     const result = addProgress(goal.id, progressAmount)
     
     if (result && !result.success) {
-      setErrorMessage(result.message || 'شما فقط یکبار در 24 ساعت میتوانید پیشرفت ثبت کنید')
-      setShowError(true)
-      setTimeout(() => setShowError(false), 3000)
+      showToast({
+        title: '⚠️ Limit Reached',
+        message: result.message || 'You can only add progress once every 24 hours.',
+        type: 'warning'
+      })
       setIsSubmitting(false)
     } else {
       refreshGoal()
+      showToast({
+        title: '📈 Progress Added!',
+        message: `+${progressAmount} ${getTypeLabel()} added to "${goal.title}"`,
+        type: 'success'
+      })
       setTimeout(() => {
         setIsSubmitting(false)
       }, 300)
@@ -117,10 +124,18 @@ export default function GoalDetail() {
 
   const handlePause = () => {
     setIsSubmitting(true)
-    updateGoal(goal.id, { 
-      status: isPaused ? 'active' : 'paused' 
-    })
+    const newStatus = isPaused ? 'active' : 'paused'
+    updateGoal(goal.id, { status: newStatus })
     refreshGoal()
+    
+    showToast({
+      title: newStatus === 'paused' ? '⏸ Goal Paused' : '▶️ Goal Resumed',
+      message: newStatus === 'paused' 
+        ? `"${goal.title}" has been paused. You can resume it anytime.`
+        : `"${goal.title}" is now active again. Keep going!`,
+      type: 'info'
+    })
+    
     setTimeout(() => {
       setIsSubmitting(false)
     }, 300)
@@ -134,6 +149,13 @@ export default function GoalDetail() {
       completedAt: new Date().toISOString()
     })
     refreshGoal()
+    
+    showToast({
+      title: '🏆 Goal Completed!',
+      message: `Congratulations! "${goal.title}" is done. +${(goal.target || 1) * 20} XP earned!`,
+      type: 'success'
+    })
+    
     setTimeout(() => {
       setIsSubmitting(false)
     }, 300)
@@ -141,8 +163,16 @@ export default function GoalDetail() {
 
   const handleDelete = () => {
     setIsSubmitting(true)
+    const goalTitle = goal.title
     deleteGoal(goal.id)
     setDeleteDialog(false)
+    
+    showToast({
+      title: '🗑️ Goal Deleted',
+      message: `"${goalTitle}" has been removed from your goals.`,
+      type: 'info'
+    })
+    
     setTimeout(() => {
       navigate('/goals')
     }, 300)
@@ -176,24 +206,6 @@ export default function GoalDetail() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      {showError && (
-        <Box sx={{ 
-          position: 'fixed', 
-          top: 20, 
-          right: 20, 
-          left: 20, 
-          zIndex: 9999,
-          backgroundColor: 'error.main',
-          color: 'white',
-          p: 2,
-          borderRadius: 2,
-          boxShadow: 3,
-          textAlign: 'center'
-        }}>
-          <Typography>{errorMessage}</Typography>
-        </Box>
-      )}
-
       <Box sx={{ mb: 3 }}>
         <Button
           variant="text"

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { LanguageProvider } from './contexts/LanguageProvider'
 import { ThemeProvider } from './contexts/ThemeProvider'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider, useToast } from './hooks/useToast'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/Dashboard'
@@ -31,16 +32,13 @@ function AppRoutes() {
   
   return (
     <Routes>
-      {/* مسیر پیش‌فرض: اگه کاربر لاگین کرده بره به داشبورد، وگرنه بره به لاگین */}
       <Route path="/" element={
         user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
       } />
       
-      {/* مسیرهای عمومی (بدون نیاز به لاگین) */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       
-      {/* مسیرهای محافظت شده (نیاز به لاگین) */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Layout>
@@ -91,7 +89,6 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
-      {/* صفحه 404 */}
       <Route path="*" element={<NotFound />} />
       <Route path="/profile" element={<Navigate to="/settings" replace />} />
     </Routes>
@@ -105,7 +102,9 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <AppRoutes />
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

@@ -1,6 +1,7 @@
 import { Card, CardContent, Box, IconButton, Chip } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../hooks/useLanguage' 
+import { useToast } from '../../hooks/useToast'
 import Typography from '../ui/Typography'
 import ProgressBar from '../ui/ProgressBar'
 import Icon from '../ui/Icon' 
@@ -15,6 +16,7 @@ export default function GoalCard({
 }) {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { showToast } = useToast()
 
   if (!goal) return null
 
@@ -49,6 +51,11 @@ export default function GoalCard({
     e.stopPropagation()
     e.preventDefault()
     onProgress(goal.id)
+    showToast({
+      title: '📈 Add Progress',
+      message: `Click on the goal to add progress for "${goal.title}"`,
+      type: 'info'
+    })
   }
 
   const handleEditClick = (e) => {
@@ -59,12 +66,23 @@ export default function GoalCard({
   const handlePauseClick = (e) => {
     e.stopPropagation()
     onPause(goal.id)
+    const newStatus = isPaused ? 'active' : 'paused'
+    showToast({
+      title: newStatus === 'paused' ? '⏸ Goal Paused' : '▶️ Goal Resumed',
+      message: `"${goal.title}" has been ${newStatus === 'paused' ? 'paused' : 'resumed'}.`,
+      type: 'info'
+    })
   }
 
   const handleDeleteClick = (e) => {
     e.stopPropagation()
     e.preventDefault()
     onDelete(goal.id)
+    showToast({
+      title: '🗑️ Goal Deleted',
+      message: `"${goal.title}" has been removed.`,
+      type: 'info'
+    })
   }
 
   return (

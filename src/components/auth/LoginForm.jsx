@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, TextField, InputAdornment, IconButton, Alert, Link, Divider, alpha, useTheme } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 import Button from '../ui/Button'
 import Icon from '../ui/Icon'
 import Typography from '../ui/Typography'
@@ -10,6 +11,7 @@ export default function LoginForm() {
   const navigate = useNavigate()
   const theme = useTheme()
   const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, loading } = useAuth()
+  const { showToast } = useToast()
 
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
@@ -37,6 +39,11 @@ export default function LoginForm() {
       const result = await login(formData.email, formData.password)
 
       if (result?.success) {
+        showToast({
+          title: '👋 Welcome Back!',
+          message: `Hello ${formData.email.split('@')[0]}, ready to achieve your goals?`,
+          type: 'success'
+        })
         navigate('/dashboard')
       } else {
         let errorMessage = result?.error || 'Login failed'
@@ -73,6 +80,11 @@ export default function LoginForm() {
       if (provider === 'github') result = await loginWithGithub()
 
       if (result?.success) {
+        showToast({
+          title: provider === 'google' ? '🔵 Google Login' : provider === 'github' ? '🐙 GitHub Login' : '📘 Facebook Login',
+          message: `Welcome! You've signed in with ${provider}.`,
+          type: 'success'
+        })
         navigate('/dashboard')
       } else {
         setError(result?.error || 'Social login failed')
@@ -152,7 +164,11 @@ export default function LoginForm() {
           color="text.secondary"
           onClick={(e) => {
             e.preventDefault()
-            // Handle forgot password
+            showToast({
+              title: '🔐 Forgot Password?',
+              message: 'Please contact support to reset your password.',
+              type: 'info'
+            })
           }}
         >
           Forgot password?

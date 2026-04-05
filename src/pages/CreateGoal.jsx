@@ -3,11 +3,12 @@ import { Box, Grid } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
 import { useGoalService } from '../services/goalService'
+import { useToast } from '../hooks/useToast'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
-import { ButtonLoading } from '../components/ui/Loading'  // ✅ ایمپورت لودینگ دکمه
+import { ButtonLoading } from '../components/ui/Loading'
 
 const COLORS = [
   '#368ac7', '#0e5488', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#e91e63', '#00bcd4'
@@ -18,6 +19,7 @@ export default function CreateGoal() {
   const { id } = useParams()
   const { t } = useLanguage()
   const { createGoal, updateGoal, getGoalById } = useGoalService()
+  const { showToast } = useToast()
   
   const isEdit = Boolean(id)
   const existingGoal = isEdit ? getGoalById(id) : null
@@ -34,7 +36,7 @@ export default function CreateGoal() {
   })
 
   const [errors, setErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)  // ✅ state برای لودینگ دکمه
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const CATEGORIES = [
     'education', 'creative', 'mental', 'career', 
@@ -83,34 +85,57 @@ export default function CreateGoal() {
   }
 
   const handleSubmit = (e) => {
-  e.preventDefault()
-  
-  if (!validate()) return
-  setIsSubmitting(true)
-
-  try {
-    const preparedData = {
-      ...formData,
-      category: formData.category.toLowerCase().trim(), // 🔥 مهم
-      target: Number(formData.target),
-      endDate: formData.endDate || null,
+    e.preventDefault()
+    
+    if (!validate()) {
+      showToast({
+        title: '⚠️ Validation Error',
+        message: 'Please check the form and fix the errors.',
+        type: 'warning'
+      })
+      return
     }
+    
+    setIsSubmitting(true)
 
-    if (isEdit && existingGoal) {
-      updateGoal(id, preparedData)
-    } else {
-      createGoal(preparedData)
+    try {
+      const preparedData = {
+        ...formData,
+        category: formData.category.toLowerCase().trim(),
+        target: Number(formData.target),
+        endDate: formData.endDate || null,
+      }
+
+      if (isEdit && existingGoal) {
+        updateGoal(id, preparedData)
+        showToast({
+          title: '✏️ Goal Updated!',
+          message: `"${formData.title}" has been updated successfully.`,
+          type: 'success'
+        })
+      } else {
+        createGoal(preparedData)
+        showToast({
+          title: '🎯 Goal Created!',
+          message: `"${formData.title}" has been added to your goals.`,
+          type: 'success'
+        })
+      }
+
+      setTimeout(() => {
+        navigate('/goals')
+      }, 500)
+
+    } catch (error) {
+      console.error('Error saving goal:', error)
+      showToast({
+        title: '❌ Failed',
+        message: error.message || 'Could not save goal. Please try again.',
+        type: 'error'
+      })
+      setIsSubmitting(false)
     }
-
-    setTimeout(() => {
-      navigate('/goals')
-    }, 300)
-
-  } catch (error) {
-    console.error('Error saving goal:', error)
-    setIsSubmitting(false)
   }
-}
 
   const getTypeLabel = (type) => {
     switch (type) {
@@ -150,7 +175,7 @@ export default function CreateGoal() {
               helperText={errors.title}
               fullWidth
               sx={{ mb: 3 }}
-              disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+              disabled={isSubmitting}
             />
 
             <Grid container spacing={3}>
@@ -167,7 +192,7 @@ export default function CreateGoal() {
                   helperText={errors.category}
                   fullWidth
                   sx={{ mb: 3 }}
-                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+                  disabled={isSubmitting}
                 >
                   <option value="">{t('createGoal.selectCategory')}</option>
                   {CATEGORIES.map((cat) => (
@@ -193,7 +218,7 @@ export default function CreateGoal() {
                   helperText={errors.type}
                   fullWidth
                   sx={{ mb: 3 }}
-                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+                  disabled={isSubmitting}
                 >
                   <option value="">{t('createGoal.selectType')}</option>
                   <option value="daily">{t('createGoal.daily')}</option>
@@ -215,7 +240,7 @@ export default function CreateGoal() {
               fullWidth
               sx={{ mb: 3 }}
               inputProps={{ min: 1 }}
-              disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+              disabled={isSubmitting}
             />
 
             <Grid container spacing={3}>
@@ -231,7 +256,7 @@ export default function CreateGoal() {
                   fullWidth
                   sx={{ mb: 3 }}
                   InputLabelProps={{ shrink: true }}
-                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+                  disabled={isSubmitting}
                 />
               </Grid>
 
@@ -246,7 +271,7 @@ export default function CreateGoal() {
                   fullWidth
                   sx={{ mb: 3 }}
                   InputLabelProps={{ shrink: true }}
-                  disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+                  disabled={isSubmitting}
                 />
               </Grid>
             </Grid>
@@ -259,16 +284,16 @@ export default function CreateGoal() {
                 {COLORS.map((color) => (
                   <Box
                     key={color}
-                    onClick={() => !isSubmitting && handleChange('color', color)}  // ✅ غیرفعال کردن هنگام ارسال
+                    onClick={() => !isSubmitting && handleChange('color', color)}
                     sx={{
                       width: 40,
                       height: 40,
                       borderRadius: '50%',
                       backgroundColor: color,
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',  // ✅ تغییر cursor
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
                       border: formData.color === color ? '3px solid text.primary' : '2px solid transparent',
                       transition: 'all 0.2s ease',
-                      opacity: isSubmitting ? 0.5 : 1,  // ✅ کم کردن opacity
+                      opacity: isSubmitting ? 0.5 : 1,
                       '&:hover': {
                         transform: isSubmitting ? 'none' : 'scale(1.1)'
                       }
@@ -287,7 +312,7 @@ export default function CreateGoal() {
               rows={4}
               fullWidth
               sx={{ mb: 3 }}
-              disabled={isSubmitting}  // ✅ غیرفعال کردن هنگام ارسال
+              disabled={isSubmitting}
             />
           </Grid>
 
@@ -315,7 +340,7 @@ export default function CreateGoal() {
                 variant="contained"
                 color="primary"
                 fullWidth
-                disabled={isSubmitting}  // ✅ غیرفعال کردن دکمه
+                disabled={isSubmitting}
                 startIcon={isSubmitting ? null : <Icon name={isEdit ? 'Save' : 'Add'} size={20} />}
                 sx={{ mb: 2 }}
               >
@@ -327,7 +352,7 @@ export default function CreateGoal() {
                 color="inherit"
                 fullWidth
                 onClick={() => navigate('/goals')}
-                disabled={isSubmitting}  // ✅ غیرفعال کردن دکمه
+                disabled={isSubmitting}
               >
                 {t('createGoal.cancel')}
               </Button>
