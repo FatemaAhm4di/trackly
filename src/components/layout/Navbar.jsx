@@ -136,7 +136,7 @@ export default function Navbar() {
       
       <Box sx={{ px: 2, mt: 'auto', mb: 2 }}>
         <ListItemButton
-          onClick={() => { handleNavigation('/profile'); handleDrawerToggle(); }}
+          onClick={() => { handleNavigation('/settings'); handleDrawerToggle(); }}
           sx={{ borderRadius: 2, py: 1.5 }}
         >
           <ListItemIcon sx={{ minWidth: 44 }}>
@@ -152,8 +152,9 @@ export default function Navbar() {
           />
         </ListItemButton>
         
+        {/* ✅ Edit Profile - تغییر مسیر به /settings */}
         <ListItemButton
-          onClick={() => { handleNavigation('/profile/edit'); handleDrawerToggle(); }}
+          onClick={() => { handleNavigation('/settings'); handleDrawerToggle(); }}
           sx={{ borderRadius: 2, py: 1, ml: 2 }}
         >
           <ListItemIcon sx={{ minWidth: 40 }}>
@@ -443,7 +444,8 @@ export default function Navbar() {
           <Typography variant="caption" color="text.secondary">{user?.email || 'Sign in to your account'}</Typography>
         </Box>
         <Divider />
-        <MenuItem onClick={() => { handleNavigation('/profile'); handleProfileMenuClose(); }} sx={{ py: 1.5, gap: 1.5 }}>
+        {/* ✅ Profile - تغییر مسیر به /settings */}
+        <MenuItem onClick={() => { handleNavigation('/settings'); handleProfileMenuClose(); }} sx={{ py: 1.5, gap: 1.5 }}>
           <Icon name="Person" size={18} />
           <Typography variant="body2">{t('nav.profile') || 'Profile'}</Typography>
         </MenuItem>
@@ -487,7 +489,7 @@ export default function Navbar() {
         ))}
       </Menu>
 
-      {/* Notifications Menu - آپدیت شده با دیتای واقعی */}
+      {/* Notifications Menu */}
       <Menu
         anchorEl={notifAnchorEl}
         open={Boolean(notifAnchorEl)}

@@ -5,6 +5,7 @@ import { useThemeContext } from '../hooks/useThemeContext'
 import { useGoalService } from '../services/useGoalService'
 import { exportGoalsJSON, exportGoalsCSV, exportGoalsPDF } from '../utils/exportUtils'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
@@ -17,6 +18,7 @@ export default function Settings() {
   const { themeMode, toggleTheme } = useThemeContext()
   const { goals, createGoal, deleteGoal } = useGoalService()
   const { user, logout, updateUserProfile } = useAuth()
+  const { showToast } = useToast()
 
   const [loading, setLoading] = useState(true)
   const [time, setTime] = useState(new Date())
@@ -105,6 +107,17 @@ export default function Settings() {
     const result = await updateUserProfile({ name, avatar })
     if (result.success) {
       setEditing(false)
+      showToast({
+        title: '✅ Profile Updated',
+        message: 'Your profile has been updated successfully.',
+        type: 'success'
+      })
+    } else {
+      showToast({
+        title: '❌ Update Failed',
+        message: result.error || 'Could not update profile. Try again.',
+        type: 'error'
+      })
     }
     setSaving(false)
   }

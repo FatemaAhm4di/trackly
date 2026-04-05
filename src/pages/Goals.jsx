@@ -3,6 +3,7 @@ import { Box, useMediaQuery, useTheme, Tabs, Tab, TextField, InputAdornment, Men
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
 import { useGoalService } from '../services/goalService'
+import { useToast } from '../hooks/useToast'
 import GoalList from '../components/goals/GoalList'
 import Typography from '../components/ui/Typography'
 import { PageLoading } from '../components/ui/Loading'
@@ -16,6 +17,7 @@ export default function Goals() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'))
   const { t } = useLanguage()
+  const { showToast } = useToast()
   
   const { 
     goals, 
@@ -32,9 +34,6 @@ export default function Goals() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [sortAnchorEl, setSortAnchorEl] = useState(null)
-  
-  const [errorMessage, setErrorMessage] = useState('')
-  const [showError, setShowError] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,34 +49,43 @@ export default function Goals() {
 
     let result = [...goals]
 
+    // فیلتر بر اساس وضعیت
     if (filter !== 'all') {
       result = result.filter(goal => goal && goal.status === filter)
     }
 
+    // جستجو بر اساس عنوان
     if (searchQuery && searchQuery.trim() !== '') {
-      if (typeof searchGoals === 'function') {
-        result = searchGoals(searchQuery)
-        if (filter !== 'all') {
-          result = result.filter(goal => goal && goal.status === filter)
-        }
-      } else {
-        result = result.filter(goal => 
-          goal && goal.title && goal.title.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      }
+      const query = searchQuery.toLowerCase().trim()
+      result = result.filter(goal => 
+        goal && goal.title && goal.title.toLowerCase().includes(query)
+      )
     }
 
-    if (typeof sortGoals === 'function' && result.length > 0) {
-      result = sortGoals(result, sortBy)
-    } else {
-      result = result.sort((a, b) => {
-        if (!a || !b) return 0
-        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-      })
+    // مرتب‌سازی
+    switch (sortBy) {
+      case 'newest':
+        result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        break
+      case 'oldest':
+        result.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0))
+        break
+      case 'progress':
+        result.sort((a, b) => {
+          const progressA = a.target ? (a.progress / a.target) * 100 : 0
+          const progressB = b.target ? (b.progress / b.target) * 100 : 0
+          return progressB - progressA
+        })
+        break
+      case 'alphabetical':
+        result.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+        break
+      default:
+        result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     }
 
     return result
-  }, [goals, filter, searchQuery, sortBy, searchGoals, sortGoals])
+  }, [goals, filter, searchQuery, sortBy])
 
   if (loading) {
     return <PageLoading />
@@ -102,18 +110,30 @@ export default function Goals() {
     setSortAnchorEl(null)
   }
 
-  const handleProgress = (goalId) => {
+  const handleProgress = (goalId, goalTitle) => {
     if (!goalId) return
     const result = addProgress(goalId)
     
-    if (result && !result.success && result.error !== 'DAILY_LIMIT') {
-      const errorMessage = result.message?.startsWith('errors.') 
-        ? t(result.message)
-        : result.message || 'An error occurred'
-      
-      setErrorMessage(errorMessage)
-      setShowError(true)
-      setTimeout(() => setShowError(false), 3000)
+    if (result && !result.success) {
+      if (result.error === 'DAILY_LIMIT') {
+        showToast({
+          title: '⚠️ Limit Reached',
+          message: result.message || 'You can only add progress once every 24 hours.',
+          type: 'warning'
+        })
+      } else {
+        showToast({
+          title: '❌ Failed',
+          message: result.message || 'Could not add progress. Try again.',
+          type: 'error'
+        })
+      }
+    } else {
+      showToast({
+        title: '📈 Progress Added!',
+        message: `+1 added to "${goalTitle || 'your goal'}"`,
+        type: 'success'
+      })
     }
   }
 
@@ -122,14 +142,25 @@ export default function Goals() {
     navigate(`/goals/${goalId}`)
   }
 
-  const handlePause = (goalId) => {
+  const handlePause = (goalId, goalTitle, isPaused) => {
     if (!goalId) return
     togglePause(goalId)
+    const newStatus = !isPaused
+    showToast({
+      title: newStatus ? '⏸ Goal Paused' : '▶️ Goal Resumed',
+      message: `"${goalTitle || 'Goal'}" has been ${newStatus ? 'paused' : 'resumed'}.`,
+      type: 'info'
+    })
   }
 
-  const handleDelete = (goalId) => {
+  const handleDelete = (goalId, goalTitle) => {
     if (!goalId) return
     deleteGoal(goalId)
+    showToast({
+      title: '🗑️ Goal Deleted',
+      message: `"${goalTitle || 'Goal'}" has been removed from your goals.`,
+      type: 'info'
+    })
   }
 
   const getEmptyMessage = () => {
@@ -153,7 +184,7 @@ export default function Goals() {
   const sortOptions = [
     { value: 'newest', label: t('goals.newest') || 'Newest First' },
     { value: 'oldest', label: t('goals.oldest') || 'Oldest First' },
-    { value: 'progress', label: t('goals.progress') || 'Progress' },
+    { value: 'progress', label: t('goals.progress') || 'Progress %' },
     { value: 'alphabetical', label: t('goals.alphabetical') || 'A-Z' }
   ]
 
@@ -165,28 +196,6 @@ export default function Goals() {
         md: 3 
       } 
     }}>
-      {showError && (
-        <Box sx={{ 
-          position: 'fixed', 
-          top: { xs: 16, sm: 20 }, 
-          right: { xs: 16, sm: 20 }, 
-          left: { xs: 16, sm: 'auto' }, 
-          zIndex: 9999,
-          backgroundColor: 'error.main',
-          color: 'white',
-          p: { xs: 1.5, sm: 2 },
-          borderRadius: 2,
-          boxShadow: 3,
-          textAlign: 'center',
-          maxWidth: { xs: 'calc(100% - 32px)', sm: 400 },
-          mx: { xs: 'auto', sm: 0 }
-        }}>
-          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-            {errorMessage}
-          </Typography>
-        </Box>
-      )}
-
       <Box sx={{ mb: { xs: 2.5, sm: 3, md: 4 } }}>
         <Typography 
           variant={isMobile ? "h5" : "h4"} 

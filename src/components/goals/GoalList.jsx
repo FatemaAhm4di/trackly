@@ -13,7 +13,7 @@ export default function GoalList({
   compact = false,
   emptyMessage 
 }) {
-  const { t } = useLanguage()
+  const { t, direction } = useLanguage()
 
   if (!goals || goals.length === 0) {
     return (

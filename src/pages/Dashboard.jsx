@@ -3,6 +3,7 @@ import { Box, Grid, Card, CardContent, IconButton, alpha } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
 import { useGoalService } from '../services/goalService'
+import { useToast } from '../hooks/useToast'
 import Icon from '../components/ui/Icon'
 import Typography from '../components/ui/Typography'
 import ProgressBar from '../components/ui/ProgressBar'
@@ -18,6 +19,7 @@ import CategoryChart from '../components/charts/CategoryChart';
 export default function Dashboard() {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { showToast } = useToast()
   
   const { 
     goals,
@@ -29,9 +31,7 @@ export default function Dashboard() {
   } = useGoalService()
   
   const [loading, setLoading] = useState(true)
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null })
-  const [errorMessage, setErrorMessage] = useState('')
-  const [showError, setShowError] = useState(false)
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, goalId: null, goalTitle: '' })
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 500)
@@ -62,19 +62,30 @@ export default function Dashboard() {
 
   if (loading) return <PageLoading />
 
-  const handleProgress = (goalId) => {
+  const handleProgress = (goalId, goalTitle) => {
     if (!goalId) return
     const result = addProgress(goalId)
     
-    // فقط خطاهای غیر از محدودیت روزانه رو نمایش بده
-    if (result && !result.success && result.error !== 'DAILY_LIMIT') {
-      const errorMessage = result.message?.startsWith('errors.') 
-        ? t(result.message)
-        : result.message || 'An error occurred'
-      
-      setErrorMessage(errorMessage)
-      setShowError(true)
-      setTimeout(() => setShowError(false), 3000)
+    if (result && !result.success) {
+      if (result.error === 'DAILY_LIMIT') {
+        showToast({
+          title: '⚠️ Limit Reached',
+          message: result.message || 'You can only add progress once every 24 hours.',
+          type: 'warning'
+        })
+      } else {
+        showToast({
+          title: '❌ Failed',
+          message: result.message || 'Could not add progress. Try again.',
+          type: 'error'
+        })
+      }
+    } else {
+      showToast({
+        title: '📈 Progress Added!',
+        message: `+1 added to "${goalTitle || 'your goal'}"`,
+        type: 'success'
+      })
     }
   }
 
@@ -82,14 +93,24 @@ export default function Dashboard() {
     if (deleteDialog.goalId) {
       try {
         deleteGoal(deleteDialog.goalId)
-        setDeleteDialog({ open: false, goalId: null })
+        showToast({
+          title: '🗑️ Goal Deleted',
+          message: `"${deleteDialog.goalTitle}" has been removed from your goals.`,
+          type: 'info'
+        })
+        setDeleteDialog({ open: false, goalId: null, goalTitle: '' })
       } catch (error) {
         console.error('Error deleting goal:', error)
+        showToast({
+          title: '❌ Failed',
+          message: 'Could not delete goal. Try again.',
+          type: 'error'
+        })
       }
     }
   }
 
-  const handleDeleteCancel = () => setDeleteDialog({ open: false, goalId: null })
+  const handleDeleteCancel = () => setDeleteDialog({ open: false, goalId: null, goalTitle: '' })
 
   const handleGoalClick = (goalId) => {
     if (!goalId) return
@@ -134,27 +155,6 @@ export default function Dashboard() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      {/* Error Snackbar */}
-      {showError && (
-        <Box sx={{ 
-          position: 'fixed', 
-          top: 20, 
-          right: 20, 
-          left: 20, 
-          zIndex: 9999,
-          bgcolor: 'error.main',
-          color: 'white',
-          p: 2,
-          borderRadius: 2,
-          boxShadow: 3,
-          textAlign: 'center',
-          maxWidth: 400,
-          mx: 'auto'
-        }}>
-          <Typography>{errorMessage}</Typography>
-        </Box>
-      )}
-
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="700" gutterBottom>
@@ -307,7 +307,7 @@ export default function Dashboard() {
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleProgress(goal.id)
+                          handleProgress(goal.id, goal.title)
                         }}
                         sx={{ 
                           bgcolor: alpha('#4caf50', 0.1),

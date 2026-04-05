@@ -50,12 +50,7 @@ export default function GoalCard({
   const handleProgressClick = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    onProgress(goal.id)
-    showToast({
-      title: '📈 Add Progress',
-      message: `Click on the goal to add progress for "${goal.title}"`,
-      type: 'info'
-    })
+    onProgress(goal.id, goal.title)
   }
 
   const handleEditClick = (e) => {
@@ -65,24 +60,13 @@ export default function GoalCard({
 
   const handlePauseClick = (e) => {
     e.stopPropagation()
-    onPause(goal.id)
-    const newStatus = isPaused ? 'active' : 'paused'
-    showToast({
-      title: newStatus === 'paused' ? '⏸ Goal Paused' : '▶️ Goal Resumed',
-      message: `"${goal.title}" has been ${newStatus === 'paused' ? 'paused' : 'resumed'}.`,
-      type: 'info'
-    })
+    onPause(goal.id, goal.title, isPaused)
   }
 
   const handleDeleteClick = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    onDelete(goal.id)
-    showToast({
-      title: '🗑️ Goal Deleted',
-      message: `"${goal.title}" has been removed.`,
-      type: 'info'
-    })
+    onDelete(goal.id, goal.title)
   }
 
   return (
