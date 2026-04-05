@@ -27,7 +27,6 @@ export const prepareMonthlyData = (goals, locale = 'en') => {
   return monthlyData;
 };
 
-// آماده‌سازی داده‌ها برای نمودار استریک
 export const prepareStreakData = (goals, locale = 'en') => {
   const last30Days = [];
   const today = new Date();
@@ -56,7 +55,6 @@ export const prepareStreakData = (goals, locale = 'en') => {
   return last30Days;
 };
 
-// آماده‌سازی داده‌ها برای نمودار دسته‌بندی - با محاسبه پیشرفت واقعی
 export const prepareCategoryData = (goals) => {
   if (!goals || goals.length === 0) return [];
   
@@ -74,46 +72,40 @@ export const prepareCategoryData = (goals) => {
       };
     }
     
-    // محاسبه پیشرفت هر هدف (درصد)
     const progress = goal.target > 0 ? (goal.progress / goal.target) * 100 : 0;
     categories[cat].totalProgress += progress;
     categories[cat].count += 1;
   });
   
-  // تبدیل به آرایه با میانگین پیشرفت هر دسته
   return Object.values(categories).map(cat => ({
     name: cat.name,
-    value: Math.round(cat.totalProgress / cat.count), // میانگین پیشرفت
+    value: Math.round(cat.totalProgress / cat.count), 
     color: getCategoryColor(cat.name)
-  })).filter(cat => cat.value > 0); // فقط دسته‌هایی که پیشرفت دارن
+  })).filter(cat => cat.value > 0); 
 };
 
-// رنگ‌بندی کامل برای ۱۲ دسته‌بندی + other
 const getCategoryColor = (category) => {
   const colors = {
-    // 12 دسته اصلی
-    education: '#3b82f6',     // آبی
-    creative: '#f97316',      // نارنجی
-    mental: '#8b5cf6',        // بنفش روشن
-    career: '#ec489a',        // صورتی
-    health: '#22c55e',        // سبز
-    fitness: '#eab308',       // زرد
-    finance: '#10b981',       // سبز زمردی
-    productivity: '#6366f1',  // آبی بنفش
-    social: '#ef4444',        // قرمز
-    family: '#f59e0b',        // نارنجی طلایی
-    travel: '#06b6d4',        // فیروزه‌ای
-    spiritual: '#a855f7',     // بنفش
-    // fallback
+    education: '#3b82f6',     
+    creative: '#f97316',      
+    mental: '#8b5cf6',     
+    career: '#ec489a',        
+    health: '#22c55e',       
+    fitness: '#eab308',       
+    finance: '#10b981',    
+    productivity: '#6366f1',  
+    social: '#ef4444',        
+    family: '#f59e0b',       
+    travel: '#06b6d4',      
+    spiritual: '#a855f7',    
     work: '#804df8',
     personal: '#ec4899',
-    other: '#64748b'          // طوسی
+    other: '#64748b'          
   };
 
   return colors[category] || colors.other;
 };
 
-// تابع کمکی برای گرفتن همه رنگ‌ها (اگه نیاز باشه)
 export const getAllCategoryColors = () => {
   return {
     education: '#3b82f6',

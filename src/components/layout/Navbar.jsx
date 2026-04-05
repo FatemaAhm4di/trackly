@@ -152,7 +152,6 @@ export default function Navbar() {
           />
         </ListItemButton>
         
-        {/* ✅ Edit Profile - تغییر مسیر به /settings */}
         <ListItemButton
           onClick={() => { handleNavigation('/settings'); handleDrawerToggle(); }}
           sx={{ borderRadius: 2, py: 1, ml: 2 }}
@@ -214,7 +213,7 @@ export default function Navbar() {
       >
         <Toolbar sx={{ justifyContent: 'space-between', minHeight: '72px !important', px: { xs: 2, sm: 3 } }}>
           
-          {/* سمت چپ: لوگو + منوی همبرگر */}
+          {/* منوی همبرگر */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {isMobile && (
               <IconButton
@@ -351,7 +350,7 @@ export default function Navbar() {
               </Typography>
             </IconButton>
 
-            {/* Notifications - فقط در دسکتاپ */}
+            {/* Notifications */}
             {!isMobile && (
               <IconButton
                 onClick={handleNotifMenuOpen}
@@ -374,7 +373,7 @@ export default function Navbar() {
               </IconButton>
             )}
 
-            {/* User Avatar - فقط در دسکتاپ */}
+            {/* User Avatar */}
             {!isMobile && (
               <IconButton
                 onClick={handleProfileMenuOpen}
@@ -399,7 +398,7 @@ export default function Navbar() {
               </IconButton>
             )}
 
-            {/* New Goal Button - فقط در دسکتاپ */}
+            {/* New Goal Button */}
             {!isMobile && (
               <IconButton
                 onClick={() => navigate('/goals/new')}
@@ -444,7 +443,7 @@ export default function Navbar() {
           <Typography variant="caption" color="text.secondary">{user?.email || 'Sign in to your account'}</Typography>
         </Box>
         <Divider />
-        {/* ✅ Profile - تغییر مسیر به /settings */}
+        
         <MenuItem onClick={() => { handleNavigation('/settings'); handleProfileMenuClose(); }} sx={{ py: 1.5, gap: 1.5 }}>
           <Icon name="Person" size={18} />
           <Typography variant="body2">{t('nav.profile') || 'Profile'}</Typography>

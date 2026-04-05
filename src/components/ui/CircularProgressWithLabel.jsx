@@ -6,7 +6,7 @@ export default function CircularProgressWithLabel({
   showLabel = true,
   thickness = 4
 }) {
-  const theme = useTheme()  // ✅ استفاده شده در getColor و sx
+  const theme = useTheme() 
   
   // رنگ بر اساس درصد
   const getColor = () => {
@@ -27,13 +27,12 @@ export default function CircularProgressWithLabel({
       gap: 2
     }}>
       <Box sx={{ position: 'relative' }}>
-        {/* پس زمینه خاکستری */}
         <CircularProgress
           variant="determinate"
           value={100}
           size={size}
           thickness={thickness}
-          sx={{ color: theme.palette.grey[200] }}  // ✅ theme اینجا استفاده شده
+          sx={{ color: theme.palette.grey[200] }}  
         />
         
         {/* پیشرفت رنگی */}

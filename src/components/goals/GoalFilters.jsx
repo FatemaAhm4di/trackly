@@ -1,14 +1,14 @@
 import { Box, Tabs, Tab, InputAdornment } from '@mui/material'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLanguage } from '../../hooks/useLanguage' 
 import Input from '../ui/Input'
 import Button from '../ui/Button'
-import Icon from '../ui/Icon' // این خط اضافه شد
+import Icon from '../ui/Icon'
 
 export default function GoalFilters({ 
-  filter: externalFilter, // دریافت filter از والد
-  searchValue: externalSearchValue, // دریافت search از والد
-  sortValue: externalSortValue, // دریافت sort از والد
+  filter: externalFilter,
+  searchValue: externalSearchValue,
+  sortValue: externalSortValue,
   onFilterChange, 
   onSearch, 
   onSort,
@@ -17,23 +17,28 @@ export default function GoalFilters({
 }) {
   const { t } = useLanguage()
   
-  // استفاده از props به جای state داخلی برای هماهنگی با والد
   const [filter, setFilter] = useState(externalFilter || 'all')
   const [searchQuery, setSearchQuery] = useState(externalSearchValue || '')
   const [sortBy, setSortBy] = useState(externalSortValue || 'newest')
 
-  // آپدیت state داخلی وقتی props تغییر میکنه
-  useState(() => {
+  // استفاده از useEffect به جای useState برای هماهنگی با props
+  useEffect(() => {
     if (externalFilter !== undefined) {
       setFilter(externalFilter)
     }
+  }, [externalFilter])
+
+  useEffect(() => {
     if (externalSearchValue !== undefined) {
       setSearchQuery(externalSearchValue)
     }
+  }, [externalSearchValue])
+
+  useEffect(() => {
     if (externalSortValue !== undefined) {
       setSortBy(externalSortValue)
     }
-  }, [externalFilter, externalSearchValue, externalSortValue])
+  }, [externalSortValue])
 
   const handleFilterChange = (event, newValue) => {
     setFilter(newValue)
@@ -51,10 +56,23 @@ export default function GoalFilters({
   }
 
   const handleSortChange = () => {
-    const newSort = sortBy === 'newest' ? 'progress' : 'newest'
+    const sortOptions = ['newest', 'oldest', 'progress', 'alphabetical']
+    const currentIndex = sortOptions.indexOf(sortBy)
+    const nextIndex = (currentIndex + 1) % sortOptions.length
+    const newSort = sortOptions[nextIndex]
     setSortBy(newSort)
     if (onSort) {
       onSort(newSort)
+    }
+  }
+
+  const getSortLabel = () => {
+    switch (sortBy) {
+      case 'newest': return t('goals.newest') || 'Newest'
+      case 'oldest': return t('goals.oldest') || 'Oldest'
+      case 'progress': return t('goals.progress') || 'Progress %'
+      case 'alphabetical': return t('goals.alphabetical') || 'A-Z'
+      default: return t('goals.newest') || 'Newest'
     }
   }
 
@@ -118,9 +136,7 @@ export default function GoalFilters({
             onClick={handleSortChange}
             sx={{ textTransform: 'none' }}
           >
-            {sortBy === 'newest' 
-              ? (t('goals.newest') || 'Newest') 
-              : (t('goals.progress') || 'Progress')}
+            {getSortLabel()}
           </Button>
         </Box>
       </Box>

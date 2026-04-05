@@ -62,7 +62,6 @@ export default function Goals() {
       )
     }
 
-    // مرتب‌سازی
     switch (sortBy) {
       case 'newest':
         result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
@@ -227,7 +226,6 @@ export default function Goals() {
 
       {/* فیلترها و جستجو و سورت */}
       <Box sx={{ mb: 3 }}>
-        {/* تب‌های فیلتر - ریسپانسیو */}
         <Box sx={{ 
           borderBottom: 1, 
           borderColor: 'divider',

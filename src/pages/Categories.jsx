@@ -10,7 +10,7 @@ import { PageLoading } from "../components/ui/Loading";
 
 export default function Categories() {
   const { t } = useLanguage();
-  const { goals } = useGoalService(); // دریافت مستقیم لیست اهداف به جای تابع
+  const { goals } = useGoalService(); 
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -30,8 +30,6 @@ export default function Categories() {
     { key: "spiritual", icon: "SelfImprovement" },
   ];
 
-  // ✅ استفاده از useMemo برای محاسبه آمار بدون ایجاد حلقه بی‌نهایت
-  // این کد فقط زمانی اجرا می‌شود که لیست 'goals' تغییر کند، نه در هر رندر!
   const categoryStats = useMemo(() => {
     const stats = {};
     
@@ -45,7 +43,7 @@ export default function Categories() {
       const completed = safeGoals.filter((g) => g.status === "completed").length;
       const total = safeGoals.length;
 
-      // محاسبه پیشرفت واقعی (مجموع پیشرفت‌ها / مجموع تارگت‌ها)
+      // محاسبه پیشرفت واقعی 
       const totalProgress = safeGoals.reduce((sum, goal) => sum + (Number(goal.progress) || 0), 0);
       const totalTarget = safeGoals.reduce((sum, goal) => sum + (Number(goal.target) || 0), 0);
       
@@ -60,9 +58,8 @@ export default function Categories() {
     });
     
     return stats;
-  }, [goals]); // فقط با تغییر لیست goals دوباره محاسبه می‌شود
+  }, [goals]);
 
-  // شبیه‌سازی لودینگ اولیه برای نرمی انیمیشن
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 300);
     return () => clearTimeout(timer);

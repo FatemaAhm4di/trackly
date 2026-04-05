@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
 import { useGoalService } from '../services/goalService'
 import { useToast } from '../hooks/useToast'
+import { getTypeLabel, getCategoryLabel, getStatusColor, calculateProgressPercent } from '../utils/goalUtils'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
@@ -84,7 +85,7 @@ export default function GoalDetail() {
     )
   }
 
-  const progressPercent = goal.target ? (goal.progress / goal.target) * 100 : 0
+  const progressPercent = calculateProgressPercent(goal.progress, goal.target)
   const isCompleted = goal.status === 'completed'
   const isPaused = goal.status === 'paused'
   
@@ -110,7 +111,7 @@ export default function GoalDetail() {
       refreshGoal()
       showToast({
         title: '📈 Progress Added!',
-        message: `+${progressAmount} ${getTypeLabel()} added to "${goal.title}"`,
+        message: `+${progressAmount} ${getTypeLabel(goal.type, t)} added to "${goal.title}"`,
         type: 'success'
       })
       setTimeout(() => {
@@ -178,19 +179,6 @@ export default function GoalDetail() {
     }, 300)
   }
 
-  const getCategoryLabel = () => {
-    return t(`categories.${goal.category}`) || goal.category || 'Other'
-  }
-
-  const getTypeLabel = () => {
-    switch (goal.type) {
-      case 'daily': return t('common.days') || 'days'
-      case 'count': return t('common.sessions') || 'sessions'
-      case 'time': return t('common.minutes') || 'minutes'
-      default: return ''
-    }
-  }
-
   const formatDate = (dateString) => {
     if (!dateString) return '-'
     try {
@@ -226,7 +214,7 @@ export default function GoalDetail() {
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Chip 
-                label={getCategoryLabel()} 
+                label={getCategoryLabel(goal.category, t)} 
                 sx={{ 
                   backgroundColor: goal.color ? `${goal.color}20` : '#368ac720',
                   color: goal.color || '#368ac7',
@@ -371,7 +359,7 @@ export default function GoalDetail() {
                         </Typography>
                       </Box>
                       <Typography variant="body1" fontWeight="600" color="primary">
-                        +{log.amount || 1} {getTypeLabel()}
+                        +{log.amount || 1} {getTypeLabel(goal.type, t)}
                       </Typography>
                     </Box>
                   ))}
@@ -531,7 +519,7 @@ export default function GoalDetail() {
       >
         <Box sx={{ py: 2 }}>
           <Input
-            label={`Amount (${getTypeLabel()})`}
+            label={`Amount (${getTypeLabel(goal.type, t)})`}
             value={progressAmount}
             onChange={(e) => setProgressAmount(Number(e.target.value))}
             type="number"

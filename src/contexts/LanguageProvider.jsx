@@ -1,14 +1,11 @@
+// src/contexts/LanguageProvider.jsx
 import { useState, useEffect } from 'react'
 import { LanguageContext } from './LanguageContext'
 import en from '../i18n/en.json'
 import fa from '../i18n/fa.json'
 import ps from '../i18n/ps.json'
 
-const translations = {
-  en,
-  fa,
-  ps
-}
+const translations = { en, fa, ps }
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {

@@ -3,15 +3,15 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import CssBaseline from '@mui/material/CssBaseline'
 import { LanguageProvider } from './contexts/LanguageProvider.jsx' 
-import { ThemeContextProvider } from './contexts/ThemeContext.jsx'
+import { ThemeProvider } from './contexts/ThemeProvider.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <LanguageProvider>
-      <ThemeContextProvider>
+      <ThemeProvider>
         <CssBaseline />
         <App />
-      </ThemeContextProvider>
+      </ThemeProvider>
     </LanguageProvider>
   </React.StrictMode>
 )

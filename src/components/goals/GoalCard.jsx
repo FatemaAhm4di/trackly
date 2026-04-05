@@ -2,6 +2,7 @@ import { Card, CardContent, Box, IconButton, Chip } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../hooks/useLanguage' 
 import { useToast } from '../../hooks/useToast'
+import { getCategoryLabel, getStatusColor, getTypeLabel, calculateProgressPercent } from '../../utils/goalUtils'
 import Typography from '../ui/Typography'
 import ProgressBar from '../ui/ProgressBar'
 import Icon from '../ui/Icon' 
@@ -20,28 +21,9 @@ export default function GoalCard({
 
   if (!goal) return null
 
-  const progressPercent = goal.target ? (goal.progress / goal.target) * 100 : 0
+  const progressPercent = calculateProgressPercent(goal.progress, goal.target)
   const isCompleted = goal.status === 'completed'
   const isPaused = goal.status === 'paused'
-  
-  const getStatusColor = () => {
-    if (isCompleted) return 'success'
-    if (isPaused) return 'warning'
-    return 'primary'
-  }
-
-  const getCategoryLabel = () => {
-    return t(`categories.${goal.category}`) || goal.category || 'Other'
-  }
-
-  const getTypeLabel = () => {
-    switch (goal.type) {
-      case 'daily': return t('common.days') || 'days'
-      case 'count': return t('common.sessions') || 'sessions'
-      case 'time': return t('common.minutes') || 'minutes'
-      default: return ''
-    }
-  }
 
   const handleCardClick = () => {
     navigate(`/goals/${goal.id}`)
@@ -102,7 +84,7 @@ export default function GoalCard({
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
               <Chip 
-                label={getCategoryLabel()} 
+                label={getCategoryLabel(goal.category, t)} 
                 size="small" 
                 sx={{ 
                   backgroundColor: goal.color ? `${goal.color}20` : '#368ac720',
@@ -115,7 +97,7 @@ export default function GoalCard({
                        isPaused ? (t('goals.paused') || 'Paused') : 
                        (t('goals.active') || 'Active')}
                 size="small"
-                color={getStatusColor()}
+                color={getStatusColor(goal.status)}
               />
             </Box>
           </Box>
@@ -155,7 +137,7 @@ export default function GoalCard({
         <Box sx={{ mb: 2 }}>
           <ProgressBar 
             value={progressPercent} 
-            color={getStatusColor()}
+            color={getStatusColor(goal.status)}
             showLabel={!compact}
             size={compact ? 'small' : 'medium'}
           />
@@ -163,7 +145,7 @@ export default function GoalCard({
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {goal.progress || 0} / {goal.target || 0} {getTypeLabel()}
+            {goal.progress || 0} / {goal.target || 0} {getTypeLabel(goal.type, t)}
           </Typography>
           {compact && (
             <IconButton 

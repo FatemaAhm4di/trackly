@@ -27,7 +27,6 @@ export default function Register() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // اگر قبلاً وارد شده بود به داشبورد بره
   useEffect(() => {
     if (user) {
       navigate('/dashboard')

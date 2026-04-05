@@ -17,7 +17,6 @@ import Archive from './pages/Archive'
 import Login from './pages/Login'
 import Register from './pages/Register'
 
-// کامپوننت برای محافظت از مسیرها
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
   
@@ -35,16 +34,11 @@ function AppRoutes() {
   return (
     <div dir={direction} style={{ width: '100%', minHeight: '100vh' }}>
       <Routes>
-        {/* مسیر پیش‌فرض: اگه کاربر لاگین کرده بره به داشبورد، وگرنه بره به لاگین */}
         <Route path="/" element={
           user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-        } />
-        
-        {/* مسیرهای عمومی (بدون نیاز به لاگین) */}
+        } />       
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        {/* مسیرهای محافظت شده (نیاز به لاگین) */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Layout>
@@ -94,8 +88,6 @@ function AppRoutes() {
             </Layout>
           </ProtectedRoute>
         } />
-        
-        {/* صفحه 404 */}
         <Route path="*" element={<NotFound />} />
         <Route path="/profile" element={<Navigate to="/settings" replace />} />
       </Routes>

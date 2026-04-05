@@ -127,12 +127,14 @@ export default function Settings() {
     setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
   }
 
-  // ===============================
-  // ✅ BACKUP (LocalStorage)
-  // ===============================
+// backup
   const handleBackup = async () => {
     if (!user) {
-      showNotification(t('settings.loginRequired') || 'Please login to backup', 'error')
+      showToast({
+        title: '⚠️ Login Required',
+        message: t('settings.loginRequired') || 'Please login to backup',
+        type: 'warning'
+      })
       return
     }
     
@@ -146,21 +148,30 @@ export default function Settings() {
       }
       localStorage.setItem(`trackly_backup_${user.id}`, JSON.stringify(backupData))
       
-      showNotification(t('settings.backupSuccess') || 'Goals backed up successfully!')
+      showToast({
+        title: '💾 Backup Complete',
+        message: t('settings.backupSuccess') || `${goals?.length || 0} goals backed up successfully!`,
+        type: 'success'
+      })
     } catch (error) {
       console.error('Backup error:', error)
-      showNotification(error.message, 'error')
+      showToast({
+        title: '❌ Backup Failed',
+        message: error.message || 'Could not backup goals. Try again.',
+        type: 'error'
+      })
     } finally {
       setBackupLoading(false)
     }
   }
-
-  // ===============================
-  // ✅ RESTORE (LocalStorage)
-  // ===============================
+// restore
   const handleRestore = async () => {
     if (!user) {
-      showNotification(t('settings.loginRequired') || 'Please login to restore', 'error')
+      showToast({
+        title: '⚠️ Login Required',
+        message: t('settings.loginRequired') || 'Please login to restore',
+        type: 'warning'
+      })
       return
     }
     
@@ -169,7 +180,11 @@ export default function Settings() {
       const savedBackup = localStorage.getItem(`trackly_backup_${user.id}`)
       
       if (!savedBackup) {
-        showNotification(t('settings.noBackup') || 'No backup found', 'error')
+        showToast({
+          title: 'ℹ️ No Backup Found',
+          message: t('settings.noBackup') || 'No backup found. Create a backup first.',
+          type: 'info'
+        })
         return
       }
       
@@ -197,13 +212,25 @@ export default function Settings() {
           }
         }
         
-        showNotification(t('settings.restoreSuccess') || `Restored ${backupData.goals.length} goals from backup!`)
+        showToast({
+          title: '🔄 Restore Complete',
+          message: t('settings.restoreSuccess') || `Restored ${backupData.goals.length} goals from backup!`,
+          type: 'success'
+        })
       } else {
-        showNotification(t('settings.noBackup') || 'No backup found', 'error')
+        showToast({
+          title: 'ℹ️ No Goals in Backup',
+          message: t('settings.noBackup') || 'Backup contains no goals.',
+          type: 'info'
+        })
       }
     } catch (error) {
       console.error('Restore error:', error)
-      showNotification(error.message, 'error')
+      showToast({
+        title: '❌ Restore Failed',
+        message: error.message || 'Could not restore goals. Try again.',
+        type: 'error'
+      })
     } finally {
       setRestoreLoading(false)
     }
@@ -238,7 +265,7 @@ export default function Settings() {
         </Typography>
       </Box>
 
-      {/* ===== ردیف 1: پروفایل کاربر ===== */}
+{/* پروفایل */}
       <Card sx={{ mb: 3, borderRadius: 3 }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
@@ -307,7 +334,7 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      {/* ===== ردیف 2: زبان + تم + ساعت ===== */}
+{/* زبان - ساعت - تم */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         
         <Grid item xs={12} sm={6} md={4}>
@@ -392,7 +419,7 @@ export default function Settings() {
         </Grid>
       </Grid>
 
-      {/* ===== ردیف 3: Cloud Backup + Export Goals ===== */}
+{/* بک اپ ایکسپورت */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         
         <Grid item xs={12} md={6}>
@@ -455,7 +482,7 @@ export default function Settings() {
         </Grid>
       </Grid>
 
-      {/* ===== ردیف 4: درباره برنامه (کامل) ===== */}
+{/* درباره برنامه */}
       <Card sx={{ borderRadius: 3 }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>

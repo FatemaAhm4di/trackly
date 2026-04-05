@@ -126,9 +126,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ===============================
-  // ✅ LOGIN (EMAIL) - LOCAL
-  // ===============================
+  //  LOGIN
   const login = async (email, password) => {
     setLoading(true)
     try {
@@ -159,9 +157,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ===============================
-  // ✅ REGISTER (EMAIL) - LOCAL
-  // ===============================
+  //  REGISTER 
   const register = async (email, password, name) => {
     setLoading(true)
     try {
@@ -205,9 +201,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ===============================
-  // ✅ GOOGLE LOGIN (Mock)
-  // ===============================
+  //  GOOGLE LOGIN
   const loginWithGoogle = async () => {
     setLoading(true)
     try {
@@ -230,9 +224,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ===============================
-  // ✅ GITHUB LOGIN (Mock)
-  // ===============================
+  //  GITHUB LOGIN 
   const loginWithGithub = async () => {
     setLoading(true)
     try {
@@ -255,17 +247,13 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ===============================
-  // ✅ LOGOUT
-  // ===============================
+  //  LOGOUT
   const logout = async () => {
     localStorage.removeItem('trackly_user')
     setUser(null)
   }
 
-  // ===============================
-  // ✅ UPDATE PROFILE
-  // ===============================
+  //  UPDATE PROFILE
   const updateUserProfile = async ({ name, avatar }) => {
     try {
       if (!user) {

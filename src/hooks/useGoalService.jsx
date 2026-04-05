@@ -2,7 +2,6 @@ import { useAuth } from '../hooks/useAuth'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useState, useEffect } from 'react'
 
-// هماهنگ با Categories.jsx
 const CATEGORIES = [
   'education', 'creative', 'mental', 'career',
   'health', 'fitness', 'finance', 'productivity',
@@ -32,14 +31,12 @@ export function useGoalService() {
     return saved ? JSON.parse(saved) : null
   }
   
-  // انتقال دیتای قدیم به جدید برای کاربر فعلی
   const migrateOldData = () => {
     if (!user || isMigrated) return
     
     const oldGoals = getOldGoals()
     const oldStats = getOldStats()
     
-    // اگه دیتای قدیم وجود داره و دیتای جدید وجود نداره، منتقل کن
     if (oldGoals && oldGoals.length > 0) {
       const existingNewGoals = localStorage.getItem(newGoalsKey)
       if (!existingNewGoals) {
@@ -59,14 +56,12 @@ export function useGoalService() {
     setIsMigrated(true)
   }
   
-  // وقتی کاربر لاگین کرد، دیتای قدیم رو به جدید منتقل کن
   useEffect(() => {
     if (user && !isMigrated) {
       migrateOldData()
     }
   }, [user, isMigrated])
   
-  // استفاده از کلیدهای جدید
   const [goals, setGoals] = useLocalStorage(
     newGoalsKey || 'trackly_goals_temp', 
     []

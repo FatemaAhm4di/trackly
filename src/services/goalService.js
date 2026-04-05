@@ -1,7 +1,6 @@
 import { useAuth } from '../hooks/useAuth'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
-// هماهنگ با Categories.jsx
 const CATEGORIES = [
   'education', 'creative', 'mental', 'career',
   'health', 'fitness', 'finance', 'productivity',
@@ -13,7 +12,6 @@ const GOAL_TYPES = ['daily', 'count', 'time']
 export function useGoalService() {
   const { user } = useAuth()
   
-  // کلیدهای ذخیره‌سازی بر اساس userId
   const goalsStorageKey = user ? `trackly_goals_${user.id}` : 'trackly_goals_temp'
   const statsStorageKey = user ? `trackly_stats_${user.id}` : 'trackly_stats_temp'
   
@@ -229,7 +227,6 @@ export function useGoalService() {
     }))
   }
 
-  // ✅ تابع جدید برای پاک کردن دیتای کاربر هنگام خروج
   const clearUserData = () => {
     if (user) {
       localStorage.removeItem(`trackly_goals_${user.id}`)

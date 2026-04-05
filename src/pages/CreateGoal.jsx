@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
 import { useGoalService } from '../services/goalService'
 import { useToast } from '../hooks/useToast'
+import { getTypeLabel } from '../utils/goalUtils'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import Typography from '../components/ui/Typography'
@@ -137,15 +138,6 @@ export default function CreateGoal() {
     }
   }
 
-  const getTypeLabel = (type) => {
-    switch (type) {
-      case 'daily': return t('common.days')
-      case 'count': return t('common.sessions')
-      case 'time': return t('common.minutes')
-      default: return ''
-    }
-  }
-
   return (
     <Box>
       <Box sx={{ mb: 4 }}>
@@ -229,7 +221,7 @@ export default function CreateGoal() {
             </Grid>
 
             <Input
-              label={`${t('createGoal.target')} (${getTypeLabel(formData.type)})`}
+              label={`${t('createGoal.target')} (${getTypeLabel(formData.type, t)})`}
               value={formData.target}
               onChange={(e) => handleChange('target', e.target.value)}
               type="number"

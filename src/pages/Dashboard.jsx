@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage' 
 import { useGoalService } from '../services/goalService'
 import { useToast } from '../hooks/useToast'
+import { calculateProgressPercent } from '../utils/goalUtils'
 import Icon from '../components/ui/Icon'
 import Typography from '../components/ui/Typography'
 import ProgressBar from '../components/ui/ProgressBar'
@@ -15,6 +16,145 @@ import { PageLoading } from '../components/ui/Loading'
 import MonthlyChart from '../components/charts/MonthlyChart';
 import StreakChart from '../components/charts/StreakChart';
 import CategoryChart from '../components/charts/CategoryChart';
+
+// کامپوننت‌های کوچک شده 
+function StatCard({ title, value, icon, color, bgColor }) {
+  return (
+    <Card 
+      sx={{ 
+        height: '100%',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+        },
+        transition: 'all 0.3s ease'
+      }}
+    >
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ p: 2, borderRadius: 3, bgcolor: bgColor }}>
+            <Icon name={icon} size={32} color={color} />
+          </Box>
+          <Box>
+            <Typography variant="body2" color="text.secondary">
+              {title}
+            </Typography>
+            <Typography variant="h5" fontWeight="700" color={color}>
+              {value}
+            </Typography>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ActiveGoalCard({ goal, onProgress, onClick }) {
+  const { t } = useLanguage()
+  const progressPercent = calculateProgressPercent(goal.progress, goal.target)
+  
+  return (
+    <Card 
+      sx={{
+        height: '100%',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+        }
+      }}
+      onClick={onClick}
+    >
+      <CardContent>
+        <Typography variant="h6" fontWeight="600" gutterBottom noWrap>
+          {goal.title || 'Untitled Goal'}
+        </Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              bgcolor: alpha(goal.color || '#1976d2', 0.1),
+              color: goal.color || '#1976d2',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+              display: 'inline-block',
+              fontWeight: 600
+            }}
+          >
+            {goal.category || 'other'}
+          </Typography>
+        </Box>
+        
+        <Box sx={{ mb: 1 }}>
+          <ProgressBar value={progressPercent} color="primary" />
+        </Box>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            {goal.progress || 0} / {goal.target || 0}
+          </Typography>
+          <IconButton 
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation()
+              onProgress(goal.id, goal.title)
+            }}
+            sx={{ 
+              bgcolor: alpha('#4caf50', 0.1),
+              color: 'success.main',
+              '&:hover': { bgcolor: 'success.main', color: 'white' }
+            }}
+          >
+            <Icon name="Add" size={18} />
+          </IconButton>
+        </Box>
+      </CardContent>
+    </Card>
+  )
+}
+
+function CompletedGoalCard({ goal, onClick }) {
+  const { t } = useLanguage()
+  
+  return (
+    <Card 
+      sx={{
+        borderLeft: '4px solid',
+        borderLeftColor: 'success.main',
+        opacity: 0.8,
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          opacity: 1,
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+        }
+      }}
+      onClick={onClick}
+    >
+      <CardContent>
+        <Typography 
+          variant="h6" 
+          fontWeight="600" 
+          gutterBottom
+          sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+          noWrap
+        >
+          {goal.title || 'Untitled Goal'}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Icon name="CheckCircle" size={20} color="success" />
+          <Typography variant="body2" color="success.main">
+            {t('dashboard.completed') || 'Completed'}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -169,32 +309,7 @@ export default function Dashboard() {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {statCards.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card 
-              sx={{ 
-                height: '100%',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                },
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ p: 2, borderRadius: 3, bgcolor: stat.bgColor }}>
-                    <Icon name={stat.icon} size={32} color={stat.color} />
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {stat.title}
-                    </Typography>
-                    <Typography variant="h5" fontWeight="700" color={stat.color}>
-                      {stat.value}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+            <StatCard {...stat} />
           </Grid>
         ))}
       </Grid>
@@ -258,68 +373,11 @@ export default function Dashboard() {
           <Grid container spacing={3}>
             {displayedActiveGoals.map((goal) => (
               <Grid item xs={12} md={6} lg={4} key={goal.id}>
-                <Card 
-                  sx={{
-                    height: '100%',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                    }
-                  }}
+                <ActiveGoalCard 
+                  goal={goal}
+                  onProgress={handleProgress}
                   onClick={() => handleGoalClick(goal.id)}
-                >
-                  <CardContent>
-                    <Typography variant="h6" fontWeight="600" gutterBottom noWrap>
-                      {goal.title || 'Untitled Goal'}
-                    </Typography>
-                    
-                    <Box sx={{ mb: 2 }}>
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          bgcolor: alpha(goal.color || '#1976d2', 0.1),
-                          color: goal.color || '#1976d2',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 2,
-                          display: 'inline-block',
-                          fontWeight: 600
-                        }}
-                      >
-                        {goal.category || 'other'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 1 }}>
-                      <ProgressBar 
-                        value={goal.target ? (goal.progress / goal.target) * 100 : 0} 
-                        color="primary"
-                      />
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {goal.progress || 0} / {goal.target || 0}
-                      </Typography>
-                      <IconButton 
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleProgress(goal.id, goal.title)
-                        }}
-                        sx={{ 
-                          bgcolor: alpha('#4caf50', 0.1),
-                          color: 'success.main',
-                          '&:hover': { bgcolor: 'success.main', color: 'white' }
-                        }}
-                      >
-                        <Icon name="Add" size={18} />
-                      </IconButton>
-                    </Box>
-                  </CardContent>
-                </Card>
+                />
               </Grid>
             ))}
           </Grid>
@@ -363,39 +421,10 @@ export default function Dashboard() {
           <Grid container spacing={3}>
             {completedGoals.slice(0, 3).map((goal) => (
               <Grid item xs={12} md={4} key={goal.id}>
-                <Card 
-                  sx={{
-                    borderLeft: '4px solid',
-                    borderLeftColor: 'success.main',
-                    opacity: 0.8,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      opacity: 1,
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                    }
-                  }}
+                <CompletedGoalCard 
+                  goal={goal}
                   onClick={() => handleGoalClick(goal.id)}
-                >
-                  <CardContent>
-                    <Typography 
-                      variant="h6" 
-                      fontWeight="600" 
-                      gutterBottom
-                      sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
-                      noWrap
-                    >
-                      {goal.title || 'Untitled Goal'}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon name="CheckCircle" size={20} color="success" />
-                      <Typography variant="body2" color="success.main">
-                        {t('dashboard.completed') || 'Completed'}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
+                />
               </Grid>
             ))}
           </Grid>

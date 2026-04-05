@@ -4,12 +4,11 @@ import { useLanguage } from '../../hooks/useLanguage'
 import CircularProgressWithLabel from './CircularProgressWithLabel'
 
 export default function PageLoadingWithProgress() {
-  const { t } = useLanguage()  // ❌ language رو برداشتم
+  const { t } = useLanguage() 
   const [progress, setProgress] = useState(0)
   const [loadingText, setLoadingText] = useState('')
 
   useEffect(() => {
-    // شبیه‌سازی پیشرفت لودینگ
     const timer = setInterval(() => {
       setProgress((oldProgress) => {
         if (oldProgress === 100) {
@@ -20,7 +19,6 @@ export default function PageLoadingWithProgress() {
       })
     }, 200)
 
-    // متن‌های مختلف برای لودینگ (با پشتیبانی از چندزبانه)
     const texts = [
       t('loading.preparing') || 'Preparing your dashboard...',
       t('loading.loadingGoals') || 'Loading your goals...',
@@ -40,11 +38,9 @@ export default function PageLoadingWithProgress() {
     }
   }, [t])
 
-  // وقتی به ۱۰۰٪ رسید، کمی مکث کن
   useEffect(() => {
     if (progress === 100) {
       const timer = setTimeout(() => {
-        // اینجا می‌تونی setLoading(false) رو صدا بزنی
       }, 500)
       return () => clearTimeout(timer)
     }

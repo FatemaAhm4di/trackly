@@ -3,7 +3,6 @@ import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { ThemeContext } from './ThemeContext';
 import { createAppTheme } from '../theme/theme';
 
-// ✅ اینجا اسم تابع مهمه - باید با چیزی که import میکنی یکی باشه
 export function ThemeProvider({ children }) {
   const [themeMode, setThemeMode] = useState(() => {
     const saved = localStorage.getItem('trackly_theme');

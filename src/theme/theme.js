@@ -1,8 +1,7 @@
 import { createTheme } from '@mui/material/styles'
 
-// اضافه شدن پارامتر direction برای پشتیبانی از RTL
 export const createAppTheme = (mode, direction = 'ltr') => createTheme({
-  direction, // <-- این خط باعث می‌شود MUI بداند راست‌چین هستیم یا چپ‌چین
+  direction, 
   palette: {
     mode,
     primary: {

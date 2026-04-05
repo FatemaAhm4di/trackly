@@ -2,16 +2,15 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// ========== JSON Export ==========
+// JSON Export 
 export const exportGoalsJSON = (goals) => {
   const dataStr = JSON.stringify(goals, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
   saveAs(blob, `goals-export-${new Date().toISOString().split('T')[0]}.json`);
 };
 
-// ========== CSV Export ==========
+//  CSV Export
 export const exportGoalsCSV = (goals) => {
-  // آماده‌سازی داده‌ها برای CSV
   const headers = ['Title', 'Category', 'Type', 'Target', 'Progress', 'Status', 'Created At'];
   
   const rows = goals.map(goal => [
@@ -33,7 +32,7 @@ export const exportGoalsCSV = (goals) => {
   saveAs(blob, `goals-export-${new Date().toISOString().split('T')[0]}.csv`);
 };
 
-// ========== PDF Export ==========
+// PDF Export
 export const exportGoalsPDF = (goals) => {
   const doc = new jsPDF();
   
@@ -62,6 +61,5 @@ export const exportGoalsPDF = (goals) => {
     headStyles: { fillColor: [54, 138, 199] }
   });
 
-  // ذخیره فایل
   doc.save(`goals-export-${new Date().toISOString().split('T')[0]}.pdf`);
 };

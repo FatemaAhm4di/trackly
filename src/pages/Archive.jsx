@@ -2,20 +2,12 @@ import { useState, useMemo, useEffect } from 'react'
 import { Box, Grid, Card, CardContent, Chip, IconButton, Tabs, Tab, Menu, MenuItem, useMediaQuery, useTheme, alpha } from '@mui/material'
 import { useLanguage } from '../hooks/useLanguage'
 import { useGoalService } from '../services/goalService'
+import { useToast } from '../hooks/useToast'
+import { formatDate } from '../utils/dateUtils'
 import Typography from '../components/ui/Typography'
 import Icon from '../components/ui/Icon'
 import Button from '../components/ui/Button'
 import { PageLoading } from '../components/ui/Loading'
-
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  try {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`
-  } catch {
-    return '-'
-  }
-}
 
 const subDays = (date, days) => {
   const result = new Date(date)
@@ -26,6 +18,7 @@ const subDays = (date, days) => {
 export default function Archive() {
   const { t } = useLanguage()
   const { goals, restoreGoal, permanentDelete } = useGoalService()
+  const { showToast } = useToast()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   
@@ -74,11 +67,21 @@ export default function Archive() {
   const handleRestore = (goal) => {
     restoreGoal(goal.id)
     setAnchorEl(null)
+    showToast({
+      title: '🔄 Goal Restored',
+      message: `"${goal.title}" has been moved back to active goals.`,
+      type: 'success'
+    })
   }
 
-  const handlePermanentDelete = (goalId) => {
-    permanentDelete(goalId)
+  const handlePermanentDelete = (goal) => {
+    permanentDelete(goal.id)
     setAnchorEl(null)
+    showToast({
+      title: '🗑️ Goal Deleted Permanently',
+      message: `"${goal.title}" has been permanently removed.`,
+      type: 'info'
+    })
   }
 
   const handleMenuOpen = (event, goal) => {
@@ -172,7 +175,7 @@ export default function Archive() {
                     <Button variant="outlined" color="primary" size="small" startIcon={<Icon name="Restore" size={14} />} onClick={() => handleRestore(goal)} fullWidth>
                       {t('archive.restore') || 'Restore'}
                     </Button>
-                    <Button variant="outlined" color="error" size="small" startIcon={<Icon name="Delete" size={14} />} onClick={() => handlePermanentDelete(goal.id)} fullWidth>
+                    <Button variant="outlined" color="error" size="small" startIcon={<Icon name="Delete" size={14} />} onClick={() => handlePermanentDelete(goal)} fullWidth>
                       {t('archive.delete') || 'Delete'}
                     </Button>
                   </Box>
@@ -196,7 +199,7 @@ export default function Archive() {
         <MenuItem onClick={() => selectedGoal && handleRestore(selectedGoal)}>
           <Icon name="Restore" size={16} sx={{ mr: 1 }} /> {t('archive.restore') || 'Restore'}
         </MenuItem>
-        <MenuItem onClick={() => selectedGoal && handlePermanentDelete(selectedGoal.id)}>
+        <MenuItem onClick={() => selectedGoal && handlePermanentDelete(selectedGoal)}>
           <Icon name="Delete" size={16} sx={{ mr: 1 }} color="error" /> {t('archive.permanentDelete') || 'Permanently Delete'}
         </MenuItem>
       </Menu>

@@ -2,7 +2,7 @@ import { Box, CircularProgress, useTheme } from '@mui/material'
 import { useLanguage } from '../../hooks/useLanguage'
 import Typography from './Typography'
 
-// لودینگ ساده و مینیمال
+
 export function LoadingSpinner({ size = 40, color = 'primary' }) {
   return (
     <CircularProgress 
@@ -20,12 +20,12 @@ export function LoadingSpinner({ size = 40, color = 'primary' }) {
   )
 }
 
-// لودینگ صفحه کامل با دیزاین جدید
+
 export function PageLoading() {
   const theme = useTheme()
   const { t } = useLanguage()
   
-  // تعیین رنگ پس زمینه بر اساس تم
+
   const backgroundColor = theme.palette.mode === 'dark' 
     ? 'rgba(0, 0, 0, 0.7)' 
     : 'rgba(255, 255, 255, 0.7)'
@@ -58,7 +58,6 @@ export function PageLoading() {
           boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
         }}
       >
-        {/* حلقه چرخان */}
         <Box sx={{ position: 'relative', width: 80, height: 80 }}>
           <CircularProgress
             size={80}
@@ -84,7 +83,6 @@ export function PageLoading() {
           />
         </Box>
 
-        {/* متن با انیمیشن - انگلیسی دیفالت با ترجمه */}
         <Typography
           variant="h6"
           sx={{
@@ -99,7 +97,6 @@ export function PageLoading() {
           {t('loading.loading') || 'Loading...'}
         </Typography>
 
-        {/* نقطه‌های متحرک */}
         <Box sx={{ display: 'flex', gap: 1 }}>
           {[0, 1, 2].map((i) => (
             <Box
@@ -123,7 +120,7 @@ export function PageLoading() {
   )
 }
 
-// لودینگ برای کارت‌ها (اسکلتون)
+// لودینگ برای کارت‌ها 
 export function CardLoading() {
   const theme = useTheme()
   
@@ -183,7 +180,6 @@ export function CardLoading() {
   )
 }
 
-// لودینگ برای دکمه
 export function ButtonLoading() {
   const { t } = useLanguage()
   

@@ -3,12 +3,14 @@ import Navbar from './Navbar'
 
 export default function Layout({ children }) {
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      backgroundColor: 'background.default',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        backgroundColor: 'background.default',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
       <Navbar />
       
       <Box 
