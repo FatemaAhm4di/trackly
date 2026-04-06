@@ -51,6 +51,8 @@
     "search": "Search goals...",
     "sortBy": "Sort by",
     "newest": "Newest",
+    "oldest": "Oldest",
+    "alphabetical": "A-Z",
     "progress": "Progress",
     "category": "Category",
     "noGoals": "No goals found",
@@ -66,7 +68,8 @@
     "activeEmpty": "No active goals",
     "completedEmpty": "No completed goals yet",
     "pausedEmpty": "No paused goals",
-    "sort": "Sort"
+    "sort": "Sort",
+    "subtitle": "Manage and track all your goals"
   },
   "createGoal": {
     "title": "Create New Goal",
@@ -179,14 +182,14 @@
     "lastActive": "Active today",
     "account": "Account",
     "accountDescription": "Manage your account and security settings",
-    "cloudBackup": "Cloud Backup",
-    "backupDescription": "Backup your goals to cloud or restore from backup",
+    "cloudBackup": "Local Backup",
+    "backupDescription": "Backup your goals to local storage or restore from backup",
     "backup": "Backup",
     "restore": "Restore",
     "backupSuccess": "Goals backed up successfully!",
     "restoreSuccess": "Restored {{count}} goals from backup!",
     "noBackup": "No backup found",
-    "loginRequired": "Please login to use cloud backup",
+    "loginRequired": "Please login to use backup",
     "backingUp": "Backing up...",
     "restoring": "Restoring...",
     "saving": "Saving...",
@@ -234,7 +237,14 @@
     "restoring": "Restoring...",
     "viewAll": "View All",
     "deleteGoal": "Delete Goal",
-    "deleteConfirmation": "Are you sure you want to delete this goal? This action cannot be undone."
+    "deleteConfirmation": "Are you sure you want to delete this goal? This action cannot be undone.",
+    "loggingIn": "Logging in...",
+    "signingUp": "Signing up...",
+    "creating": "Creating...",
+    "updating": "Updating...",
+    "deleting": "Deleting...",
+    "restoringText": "Restoring...",
+    "backingUpText": "Backing up..."
   },
   "categories_list": {
     "health": "Health",
@@ -334,7 +344,10 @@
     "created": "Created",
     "completed": "Completed",
     "active": "Active",
-    "noCategoryData": "No goals data available"
+    "inactive": "Inactive",
+    "noData": "No data available",
+    "noCategoryData": "No goals data available",
+    "status": "Status"
   },
   "languages": {
     "english": "English",
@@ -354,5 +367,24 @@
     "totalGoals": "Total Goals",
     "completed": "Completed",
     "streak": "Day Streak"
+  },
+  "auth": {
+    "welcome": "Welcome back!",
+    "createAccount": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "continueGoogle": "Continue with Google",
+    "continueGithub": "Continue with GitHub",
+    "continueFacebook": "Continue with Facebook",
+    "or": "OR",
+    "loggingIn": "Logging in...",
+    "signingUp": "Signing up..."
   }
 }
