@@ -69,7 +69,8 @@
     "completedEmpty": "No completed goals yet",
     "pausedEmpty": "No paused goals",
     "sort": "Sort",
-    "subtitle": "Manage and track all your goals"
+    "subtitle": "Manage and track all your goals",
+    "newGoal": "New Goal"
   },
   "createGoal": {
     "title": "Create New Goal",
